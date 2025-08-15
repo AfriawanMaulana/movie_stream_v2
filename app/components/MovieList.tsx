@@ -31,12 +31,14 @@ export default function MovieList(
         category,
         header,
         isParam,
+        seeAll,
     }: {
         API_URL: string; 
         isPagination?: boolean;
         category: string;
         header?: string;
         isParam?: boolean;
+        seeAll?: string;
     }) {
 
     const [data, setData] = useState<DataType>();
@@ -92,8 +94,9 @@ export default function MovieList(
     if (!data) return;
     return (
         <div>
-            <div>
+            <div className="flex w-full justify-between items-center">
                 <h1 className="text-xl px-4 my-4 border-l-2 border-red-500">{data?.results[0] && header?.toUpperCase()}</h1>
+                {seeAll && <Link href={`${seeAll}`} className="text-[11px] bg-red-500 hover:bg-red-600 text-white/80 rounded-[4px] py-1 px-3">SEE ALL</Link>}
             </div>
             <div className="movie-container mb-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4 space-y-3 border-b border-white/20">
                 {data?.results.map((item) => {
