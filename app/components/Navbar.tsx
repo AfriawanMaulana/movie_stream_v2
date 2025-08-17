@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -112,7 +113,9 @@ export default function Navbar() {
                     </svg>
                 )}
             </button>
-            <Link href={"/"} className="font-black text-2xl text-red-500">FLIBMA</Link>
+            <Link href={"/"} className="font-black text-2xl text-red-500">
+                <Image src={'/logo.png'} alt="logo.png" width={130} height={130} />
+            </Link>
             <div className="md:hidden"></div>
             
 

@@ -6,7 +6,7 @@ export default function Page() {
         <div className="flex flex-col">
             <Navbar />
             <section className="px-5 lg:px-14 py-20">
-                <MovieList API_URL="/api/tmdb/movie/popular" category="movie" header="paling populer" isPagination />
+                <MovieList API_URL="/api/tmdb/discover/movie" filterCountry="" category="movie" header="popular" isPagination />
             </section>
         </div>
     )

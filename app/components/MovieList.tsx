@@ -32,6 +32,7 @@ export default function MovieList(
         header,
         isParam,
         seeAll,
+        filterCountry,
     }: {
         API_URL: string; 
         isPagination?: boolean;
@@ -39,17 +40,22 @@ export default function MovieList(
         header?: string;
         isParam?: boolean;
         seeAll?: string;
+        filterCountry?: string;
     }) {
 
     const [data, setData] = useState<DataType>();
     const [page, setPage] = useState(1);
-
+    
+    
     //* FETCHING FROM TMDB API
     useEffect(() => {
-        axios.get(`${API_URL}${isParam ? '&' : "?"}page=${page}`)
+        axios.get(`${API_URL}${isParam ? '&' : "?"}page=${page}&with_origin_country=${filterCountry}`)
             .then(res => setData(res.data))
             .catch(err => console.error(err))
-    }, [API_URL, page, isParam]);
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [API_URL, page, isParam,filterCountry]);
+
 
     //* HANDLE NEXT PAGE BUTTON
     const handleNext = () => {
@@ -98,7 +104,7 @@ export default function MovieList(
                 <h1 className="text-xl px-4 my-4 border-l-2 border-red-500">{data?.results[0] && header?.toUpperCase()}</h1>
                 {seeAll && <Link href={`${seeAll}`} className="text-[11px] bg-red-500 hover:bg-red-600 text-white/80 rounded-[4px] py-1 px-3">SEE ALL</Link>}
             </div>
-            <div className="movie-container mb-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4 space-y-3 border-b border-white/20">
+            <div id="movie-container" className="movie-container mb-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4 space-y-3 border-b border-white/20">
                 {data?.results.map((item) => {
                     if (!item.poster_path) return;
                     return (
@@ -110,11 +116,11 @@ export default function MovieList(
                                     height={130} 
                                     alt={item.title || item.name} 
                                     priority
-                                    className="w-full h-full object-cover hover:brightness-50 hover:scale-110 transition-all duration-200 ease-in-out"
+                                    className="w-full h-full object-cover hover:brightness-20 hover:scale-110 transition-all duration-200 ease-in-out"
                                 />
                                 <div className={`${category.toLowerCase() === "movie" ? "bg-red-500" : "bg-green-500"} absolute top-0 left-0 text-xs font-semibold px-4 py-0.5`}>{category.toLowerCase() === "movie" ? "MOVIE" : "TV"}</div>
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none w-full h-full">
-                                    <h1 className="font-black text-red-500 text-3xl opacity-0 scale-150 group-hover:opacity-100 group-hover:scale-100 transition-all duration-400 z-10">FILBMA</h1>
+                                    <Image src={'/logo.png'} alt="logo.png" width={150} height={150} className="opacity-0 group-hover:opacity-100 scale-120 group-hover:scale-100 transition-all duration-500 ease-in-out" />
                                 </div>
                             </Link>
                             <div>
@@ -139,10 +145,10 @@ export default function MovieList(
                         {pageNumbers.map((pageNum) => (
                             <PaginationItem key={pageNum}>
                                 <PaginationLink
-                                isActive={page === pageNum}
-                                onClick={() => setPage(pageNum)}
+                                    isActive={page === pageNum}
+                                    onClick={() => setPage(pageNum)}
                                 >
-                                {pageNum}
+                                    {pageNum}
                                 </PaginationLink>
                             </PaginationItem>
                         ))}
