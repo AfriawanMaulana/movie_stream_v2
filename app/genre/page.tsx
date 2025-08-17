@@ -27,6 +27,9 @@ export default function Page() {
 
     return (
         <div>
+            <head>
+                <title>Genre - TERFLIX</title>
+            </head>
             <Navbar />
             <section className="flex flex-col space-y-8 px-5 lg:px-14 py-20">
                 <div className="p-4 border-b border-white/20">

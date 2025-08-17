@@ -3,7 +3,7 @@ import "./globals.css";
 import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
-  title: "FLIBMA",
+  title: "TERFLIX - Nonton Film, Serial TV berbagai Subtitle",
   description: "Free Movie Streaming",
 };
 
