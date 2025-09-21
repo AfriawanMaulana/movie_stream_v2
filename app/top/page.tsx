@@ -9,9 +9,7 @@ export default function Page() {
 
     return (
         <div>
-            <head>
-                <title>Top Rated - TERFLIX</title>
-            </head>
+            <title>Top Rated - TERFLIX</title>
             <Navbar />
             <section className="px-5 lg:px-14 py-20">
                 <MovieList API_URL={`/api/tmdb/${params}/top_rated`} header="top rated" category={`${params}`} isPagination />

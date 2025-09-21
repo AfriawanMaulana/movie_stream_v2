@@ -4,9 +4,7 @@ import Navbar from "../components/Navbar";
 export default function Page() {
     return (
         <div className="flex flex-col">
-            <head>
-                <title>Movies - TERFLIX</title>
-            </head>
+            <title>Movies - TERFLIX</title>
             <Navbar />
             <section className="px-5 lg:px-14 py-20">
                 <MovieList API_URL="/api/tmdb/discover/movie" filterCountry="" category="movie" header="popular" isPagination />

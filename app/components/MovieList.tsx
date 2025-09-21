@@ -49,7 +49,7 @@ export default function MovieList(
     
     //* FETCHING FROM TMDB API
     useEffect(() => {
-        axios.get(`${API_URL}${isParam ? '&' : "?"}page=${page}&with_origin_country=${filterCountry}`)
+        axios.get(`${API_URL}${isParam ? '&' : "?"}page=${page}`)
             .then(res => setData(res.data))
             .catch(err => console.error(err))
         

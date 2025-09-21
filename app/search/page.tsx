@@ -13,9 +13,7 @@ export default function Page() {
 
     return (
         <div>
-            <head>
-                <title>Search - TERFLIX</title>
-            </head>
+            <title>Search - TERFLIX</title>
             <Navbar />
             <section className="px-5 lg:px-14 py-20 flex flex-col">
                 <div>

@@ -5,10 +5,17 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { UserCircle } from "lucide-react";
+import Link from "next/link";
 
 interface DataType {
     id: number;
     title: string;
+    genres: [
+        {
+            id: number;
+            name: string;
+        }
+    ];
     poster_path: string;
     tagline: string;
     release_date: string;
@@ -61,6 +68,7 @@ export default function MovieDetail() {
                 movie_id: Number(movie_id),
                 username: form.name,
                 message: form.comment,
+                type: 'movie'
             }]);
             setForm({ name: "", comment: "" });
             setMsgLength(1000);
@@ -75,6 +83,7 @@ export default function MovieDetail() {
                 .from('comments')
                 .select('*')
                 .eq('movie_id', movie_id)
+                .eq('type', 'movie')
                 .order('id', { ascending: false });
             if (error) {
                 console.error("Supabase insert error:", error.message, error.details);
@@ -94,16 +103,17 @@ export default function MovieDetail() {
 
     return (
         <div className="py-20 flex flex-col space-y-10">
+            {/* Video frame */}
             <div>     
                 <iframe 
-                loading="lazy"
-                src={`${stream_url}/${movie_id}?autoPlay=false`}
-                title="Movie player" 
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                className="flex w-full h-[315px] md:h-screen"
+                    loading="lazy"
+                    src={`${stream_url}/${movie_id}?autoPlay=false`}
+                    title="Movie player" 
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    className="flex w-full h-[315px] md:h-screen"
                 >
-            </iframe>
+                </iframe>
             </div>
             <div className="px-5">
                 <div className="flex gap-5 border-b border-white/20 pb-4">
@@ -112,6 +122,17 @@ export default function MovieDetail() {
                         <h1 className="text-3xl">{data?.title}</h1>
                         <p className="opacity-70">{data?.tagline}</p>
                         <p className="opacity-50 text-sm">{data?.release_date}</p>
+                        <div className="flex gap-2">
+                            {data?.genres.map((genre) => (
+                                <Link 
+                                    key={genre.id} 
+                                    href={`/genre/${genre.name}`}
+                                    className="bg-red-500 text-white rounded-md p-2"
+                                >
+                                    {genre.name}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -146,8 +167,8 @@ export default function MovieDetail() {
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-2 items-center">
-                        <div className="flex items-center relative w-1/2">
+                    <div className="flex flex-col md:flex-row justify-end gap-2 items-center">
+                        <div className="flex items-center relative w-full md:w-1/2">
                             <UserCircle className="absolute top-2 left-1.5 text-slate-100/50" />
                             <input 
                                 type="text" 
@@ -157,7 +178,7 @@ export default function MovieDetail() {
                                 className="w-full h-10 py-4 pl-10 pr-4 rounded-lg border border-red-500 outline-hidden placeholder:text-red-500"
                             />
                         </div>
-                        <button type="submit" className="cursor-pointer bg-red-500 w-40 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 ease-in-out">Post Comment</button>
+                        <button type="submit" className="cursor-pointer bg-red-500 w-full md:w-40 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 ease-in-out">Post Comment</button>
                     </div>
                 </form>
 

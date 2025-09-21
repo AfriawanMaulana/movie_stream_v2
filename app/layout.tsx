@@ -18,9 +18,8 @@ export default function RootLayout({
         className={`antialiased`}
       >
         {children}
-        <div className="hidden md:flex">
-          <Footer />
-        </div>
+        
+        <Footer />
       </body>
     </html>
   );

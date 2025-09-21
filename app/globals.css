@@ -1,6 +1,25 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
+.custom-scrollbar {
+  &::-webkit-scrollbar{
+    @apply w-1
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    @apply bg-red-700 rounded-lg
+  }
+}
+
+&::-webkit-scrollbar{
+    width: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: red;
+  }
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

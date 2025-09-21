@@ -9,9 +9,7 @@ export default function Trending() {
 
     return (
         <div>
-            <head>
-                <title>Most Watched - TERFLIX</title>
-            </head>
+            <title>Most Watched - TERFLIX</title>
             <Navbar />
             <section className="px-5 lg:px-14 py-20">
                 <MovieList API_URL={`/api/tmdb/trending/${query}/week?language=en-US`} isParam header="Trending" category={`${query}`} isPagination />
