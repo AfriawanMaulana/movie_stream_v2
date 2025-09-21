@@ -129,7 +129,7 @@ export default function MovieList(
                                 </Link>
                                 <p className="text-xs text-slate-400">{item.release_date && new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(item.release_date)).split(' ').join(', ') || item.first_air_date && new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(item.first_air_date)).split(' ').join(', ')}</p>
                             </div>
-                        </div>
+                        </div> 
                     )
                     }
                 )}
