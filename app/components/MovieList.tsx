@@ -120,7 +120,7 @@ export default function MovieList(
                                 />
                                 <div className={`${category.toLowerCase() === "movie" ? "bg-red-500" : "bg-green-500"} absolute top-0 left-0 text-xs font-semibold px-4 py-0.5`}>{category.toLowerCase() === "movie" ? "MOVIE" : "TV"}</div>
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none w-full h-full">
-                                    <Image src={'/logo.png'} alt="logo.png" width={150} height={150} className="opacity-0 group-hover:opacity-100 scale-120 group-hover:scale-100 transition-all duration-500 ease-in-out" />
+                                    <Image src={'/logo.png'} alt="logo.png" width={150} height={150} className="w-36 h-auto opacity-0 group-hover:opacity-100 scale-120 group-hover:scale-100 transition-all duration-500 ease-in-out" />
                                 </div>
                             </Link>
                             <div>

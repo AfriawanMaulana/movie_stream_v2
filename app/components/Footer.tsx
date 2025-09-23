@@ -57,7 +57,7 @@ export default function Footer() {
         <footer className="flex flex-col gap-6 md:flex-row justify-between w-full h-auto border-t border-white/20 px-5 lg:px-14 py-10">
             <div className="flex flex-col space-y-3 items-center md:items-start w-full md:w-96">
                 <Link href={"/"} className="font-black text-2xl text-red-500">
-                    <Image src={'/logo.png'} alt="logo.png" width={200} height={200} />
+                    <Image src={'/logo.png'} alt="logo.png" width={200} height={200} className="w-48 h-auto" />
                 </Link>
                 <p className="text-[13px] text-center md:text-start text-white/80">TERFLIX adalah platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis, namun tidak seperti platform streaming lainnya, TERFLIX ingin menyediakan layanan nonton film dengan kualitas bagus dan tidak ada bayaran apapun untuk menikmati film atau series yang ada disitus TERFLIX ini, karena tidak semua wilayah di Indonesia memiliki bioskop untuk menonton film-film terbaru.</p>
             </div>

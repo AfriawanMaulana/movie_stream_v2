@@ -114,7 +114,7 @@ export default function Navbar() {
                 )}
             </button>
             <Link href={"/"} className="font-black text-2xl text-red-500">
-                <Image src={'/logo.png'} alt="logo.png" width={130} height={130} />
+                <Image src={'/logo.png'} alt="logo.png" width={130} height={130} className="w-36 h-auto" />
             </Link>
             <div className="md:hidden"></div>
             
