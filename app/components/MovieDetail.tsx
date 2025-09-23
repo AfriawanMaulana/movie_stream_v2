@@ -95,9 +95,15 @@ export default function MovieDetail() {
         }
     }
 
+
+    
+
     useEffect(() => {
-        window.scroll(0, 0);
+        window.addEventListener('load', () => {
+            window.scrollTo(0, 0);
+        });
         getComments();
+        
     });
 
 
