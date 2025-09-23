@@ -96,6 +96,7 @@ export default function MovieDetail() {
     }
 
     useEffect(() => {
+        window.scroll(0, 0);
         getComments();
     });
 
@@ -117,12 +118,19 @@ export default function MovieDetail() {
             </div>
             <div className="px-5">
                 <div className="flex gap-5 border-b border-white/20 pb-4">
-                    <Image src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`} width={130} height={130} alt={`${data?.title}`} priority className="w-40 h-auto object-cover" />
+                    <Image 
+                        src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`} 
+                        width={130} 
+                        height={130} 
+                        alt={`${data?.title}`} 
+                        priority 
+                        className="w-36 md:w-40 h-auto object-cover" 
+                    />
                     <div className="flex flex-col space-y-1">
-                        <h1 className="text-3xl">{data?.title}</h1>
-                        <p className="opacity-70">{data?.tagline}</p>
+                        <h1 className="text-2xl md:text-3xl">{data?.title}</h1>
+                        <p className="opacity-70 text-sm md:text-md">{data?.tagline}</p>
                         <p className="opacity-50 text-sm">{data?.release_date}</p>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {data?.genres.map((genre) => (
                                 <Link 
                                     key={genre.id} 
@@ -153,7 +161,7 @@ export default function MovieDetail() {
                             height={80} 
                             alt="" 
                             priority
-                            className="rounded-full w-auto h-auto object-cover"
+                            className="rounded-full w-28 md:w-auto h-auto object-cover"
                         />
                         <div className="flex relative w-full">
                             <p className="absolute top-1 right-3 text-xs">{msgLength}</p>
