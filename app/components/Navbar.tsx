@@ -74,7 +74,7 @@ const navLinks = [
     main_path: "/countries",
   },
   {
-    name: "Genre",
+    name: "Genres",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -200,8 +200,8 @@ export default function Navbar() {
       </button>
       <Link href={"/"} className="font-black text-2xl text-red-500">
         <Image
-          src={"/logo-halloween.png"}
-          alt="logo-halloween.png"
+          src={"/logo-christmas.png"}
+          alt="logo-christmas.png"
           width={130}
           height={130}
           className="w-36 h-auto"

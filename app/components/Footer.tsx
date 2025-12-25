@@ -97,7 +97,7 @@ export default function Footer() {
       <div className="flex flex-col space-y-3 items-center md:items-start w-full md:w-96">
         <Link href={"/"} className="font-black text-2xl text-red-500">
           <Image
-            src={"/logo-halloween.png"}
+            src={"/logo-christmas.png"}
             alt="logo.png"
             width={200}
             height={200}

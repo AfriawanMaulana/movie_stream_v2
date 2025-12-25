@@ -3,6 +3,7 @@ import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Pagination,
   PaginationContent,
@@ -47,30 +48,40 @@ export default function MovieList({
   seeAll?: string;
   filterCountry?: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [data, setData] = useState<DataType>();
-  const [page, setPage] = useState(1);
+
+  const currentPage = Number(searchParams.get("page")) || 1;
 
   //* FETCHING FROM TMDB API
   useEffect(() => {
     axios
-      .get(`${API_URL}${isParam ? "&" : "?"}page=${page}`)
+      .get(`${API_URL}${isParam ? "&" : "?"}page=${currentPage}`)
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
 
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [API_URL, page, isParam, filterCountry]);
+  }, [API_URL, currentPage, isParam, filterCountry]);
+
+  //* UPDATE URL WITH NEW PAGE
+  const updatePage = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+    router.push(`?${params.toString()}`);
+  };
 
   //* HANDLE NEXT PAGE BUTTON
   const handleNext = () => {
-    if (data && page >= 1 && page <= data?.total_pages) {
-      setPage(page + 1);
+    if (data && currentPage >= 1 && currentPage < data.total_pages) {
+      updatePage(currentPage + 1);
     }
   };
 
   //* HANDLE PREVIOUS PAGE BUTTON
   const handlePrev = () => {
-    if (page > 1) {
-      setPage(page - 1);
+    if (currentPage > 1) {
+      updatePage(currentPage - 1);
     }
   };
 
@@ -79,7 +90,7 @@ export default function MovieList({
   const half = Math.floor(visiblePages / 2);
   const totalPages = data?.total_pages ?? 1;
 
-  let startPage = Math.max(1, page - half);
+  let startPage = Math.max(1, currentPage - half);
   const endPage = Math.min(totalPages, startPage + visiblePages - 1);
 
   if (endPage - startPage < visiblePages - 1) {
@@ -197,13 +208,21 @@ export default function MovieList({
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious onClick={handlePrev} />
+              <PaginationPrevious
+                onClick={handlePrev}
+                className={
+                  currentPage === 1
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
             </PaginationItem>
             {pageNumbers.map((pageNum) => (
               <PaginationItem key={pageNum}>
                 <PaginationLink
-                  isActive={page === pageNum}
-                  onClick={() => setPage(pageNum)}
+                  isActive={currentPage === pageNum}
+                  onClick={() => updatePage(pageNum)}
+                  className="cursor-pointer"
                 >
                   {pageNum}
                 </PaginationLink>
@@ -213,7 +232,14 @@ export default function MovieList({
               <PaginationEllipsis />
             </PaginationItem>
             <PaginationItem>
-              <PaginationNext onClick={handleNext} />
+              <PaginationNext
+                onClick={handleNext}
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : "cursor-pointer"
+                }
+              />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
