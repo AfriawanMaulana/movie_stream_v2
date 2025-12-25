@@ -1,12 +1,14 @@
 "use client";
 import MovieList from "./components/MovieList";
 import Navbar from "./components/Navbar";
+import ParticlesDemo from "./components/ParticlesEffect";
 import SearchInput from "./components/SearchInput";
 
 export default function Home() {
   return (
     <div>
       <Navbar />
+      <ParticlesDemo />
       <section className="px-5 lg:px-14 py-20 flex flex-col">
         <SearchInput />
         <div className="space-y-10">
