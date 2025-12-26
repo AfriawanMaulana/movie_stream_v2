@@ -21,8 +21,23 @@ interface DataType {
   release_date: string;
   overview: string;
 }
+
+const servers = [
+  {
+    id: 1,
+    name: "Server 1",
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
+  },
+  {
+    id: 2,
+    name: "Server 2",
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/movie`,
+  },
+];
+
 export default function MovieDetail() {
   const movie_id = useSearchParams().get("id");
+  const [switchServer, setSwitchServer] = useState(1);
   const [data, setData] = useState<DataType | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -40,7 +55,10 @@ export default function MovieDetail() {
     }>
   >([]);
 
-  const stream_url = process.env.NEXT_PUBLIC_VIDSRC_API + "/movie";
+  const stream_url = servers
+    .filter((item) => item.id === switchServer)
+    .map((e) => e.endpoint);
+
   useEffect(() => {
     axios
       .get(`/api/tmdb/movie/${movie_id}`)
@@ -109,9 +127,9 @@ export default function MovieDetail() {
   };
 
   useEffect(() => {
-    // window.addEventListener('load', () => {
-    //     window.scrollTo(0, 0);
-    // })
+    window.addEventListener("load", () => {
+      window.scrollTo(0, 0);
+    });
     getComments();
   });
 
@@ -126,11 +144,26 @@ export default function MovieDetail() {
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           referrerPolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin"
+          sandbox={
+            switchServer === 1 ? "allow-scripts allow-same-origin" : undefined
+          }
           className="flex w-full h-[315px] md:h-screen"
         ></iframe>
       </div>
       <div className="px-5">
+        <div className="flex items-center gap-3 mb-4">
+          {servers.map((server) => (
+            <button
+              key={server.id}
+              onClick={() => setSwitchServer(server.id)}
+              className={`${
+                switchServer === server.id && "bg-red-500 text-white"
+              }text-red-500 rounded-md py-2 px-4 border border-red-500`}
+            >
+              {server.name}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-5 border-b border-white/20 pb-4">
           <Image
             src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
