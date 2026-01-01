@@ -1,4 +1,4 @@
-export default function MoviesSkeleton() {
+export default function MovieSkeleton() {
   return (
     <section className="grid grid-cols-3 md:grid-cols-6 gap-3 px-5 py-20">
       {Array.from({ length: 12 }).map((_, i) => (
@@ -7,3 +7,4 @@ export default function MoviesSkeleton() {
     </section>
   );
 }
+
