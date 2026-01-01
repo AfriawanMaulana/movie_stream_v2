@@ -1,6 +1,7 @@
 "use client";
-
+import confetti from "canvas-confetti";
 import { useEffect, useState } from "react";
+import FireworksParticles from "./FireworkParticles";
 
 interface Particle {
   id: number;
@@ -16,7 +17,6 @@ const ChristmasParticles = () => {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    // Generate particles
     const newParticles = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
@@ -77,10 +77,21 @@ const ChristmasParticles = () => {
   );
 };
 
+const Fireworks = () => {
+  useEffect(() => {
+    confetti({
+      particleCount: 200,
+      spread: 150,
+      origin: { y: 1 },
+    });
+  }, []);
+  return null;
+};
+
 export default function ParticlesDemo() {
   return (
     <div className="min-h-screen absolute">
-      <ChristmasParticles />
+      <FireworksParticles />
     </div>
   );
 }

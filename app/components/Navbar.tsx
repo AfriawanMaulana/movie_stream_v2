@@ -200,8 +200,8 @@ export default function Navbar() {
       </button>
       <Link href={"/"} className="font-black text-2xl text-red-500">
         <Image
-          src={"/logo-christmas.png"}
-          alt="logo-christmas.png"
+          src={"/logo-newyear.png"}
+          alt="logo-newyear.png"
           width={130}
           height={130}
           className="w-36 h-auto"
