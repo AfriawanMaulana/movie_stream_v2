@@ -15,7 +15,7 @@ export default async function Page({
   searchParams: Promise<{ page?: string; genre?: string }>;
 }) {
   const sp = await searchParams;
-  const region = params.slug;
+  const region = params.slug as string;
   const page = Number(sp.page) || 1;
   const genreSlug = sp.genre;
 

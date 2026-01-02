@@ -11,6 +11,7 @@ interface Particle {
   type: string;
 }
 
+const event = "newyear";
 const ChristmasParticles = () => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [show, setShow] = useState(true);
@@ -79,7 +80,7 @@ const ChristmasParticles = () => {
 export default function ParticlesDemo() {
   return (
     <div className="min-h-screen absolute">
-      <FireworksParticles />
+      {event == "newyear" ? <FireworksParticles /> : <ChristmasParticles />}
     </div>
   );
 }
