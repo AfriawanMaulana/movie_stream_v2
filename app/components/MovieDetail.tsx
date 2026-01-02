@@ -171,6 +171,7 @@ export default function MovieDetail() {
             height={130}
             alt={`${data?.title}`}
             priority
+            unoptimized
             className="w-36 md:w-40 h-auto object-cover"
           />
           <div className="flex flex-col space-y-1">

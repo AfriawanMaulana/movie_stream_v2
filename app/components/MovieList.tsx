@@ -125,6 +125,7 @@ export default function MovieList({
                   alt={title || "movie"}
                   width={200}
                   height={300}
+                  unoptimized
                   className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-50 group-hover:scale-110"
                 />
 
