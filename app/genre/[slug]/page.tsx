@@ -10,7 +10,7 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{
     page?: string;
     category?: string;
@@ -24,8 +24,8 @@ export default async function Page({
   const category = sp.category ?? "movie";
   const region = sp.region ?? "";
 
-  const Params = await params;
-  const genreId = await getGenreId(Params.slug);
+  const { slug } = await params;
+  const genreId = await getGenreId(slug);
 
   const movies = await getMovies(
     `/api/tmdb/discover/${category}?with_genres=${Number(genreId)}${
@@ -42,7 +42,7 @@ export default async function Page({
       <section className="px-5 lg:px-14 py-20">
         <div className="relative border-t-2 border-white/20 flex w-full h-0 mt-10 items-center justify-center">
           <h1 className="font-semibold text-3xl bg-background absolute px-4">
-            {Params.slug.charAt(0).toUpperCase() + Params.slug.slice(1)}
+            {slug.charAt(0).toUpperCase() + slug.slice(1)}
           </h1>
         </div>
         <GenreFilter />

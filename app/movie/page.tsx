@@ -8,7 +8,7 @@ import MovieSkeleton from "../components/MovieSkeleton";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { page?: string; get?: string };
+  searchParams: Promise<{ page?: string; get?: string }>;
 }) {
   const params = await searchParams;
   const page = Number(params.page) || 1;

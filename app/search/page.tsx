@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { page?: string; query?: string; category?: string };
+  searchParams: Promise<{ page?: string; query?: string; category?: string }>;
 }) {
   const params = await searchParams;
   const page = Number(params.page) || 1;

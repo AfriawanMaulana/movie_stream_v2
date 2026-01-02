@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { page?: string; get?: string };
+  searchParams: Promise<{ page?: string; get?: string }>;
 }) {
   const today = new Date().toISOString().split("T")[0];
   const params = await searchParams;

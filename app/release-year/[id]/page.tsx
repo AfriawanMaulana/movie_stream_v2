@@ -9,8 +9,8 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { type?: "movie" | "tv"; page?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ type?: "movie" | "tv"; page?: string }>;
 }) {
   const Params = await params;
   const sp = await searchParams;
