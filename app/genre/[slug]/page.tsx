@@ -32,8 +32,8 @@ export default async function Page({
       region &&
       `&region=${region.toUpperCase()}&language=${
         region === "id" ? "id-ID" : "en-US"
-      }&with_original_language=${region}&sort_by=primary_release_date.desc&release_date.lte=${today}&page=${page}`
-    }`
+      }`
+    }&with_original_language=${region}&release_date.lte=${today}&page=${page}`
   );
 
   return (

@@ -57,6 +57,8 @@ export default function MovieList({
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
     router.push(`${pathname}?${params.toString()}`);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const slugify = (str?: string) => {
