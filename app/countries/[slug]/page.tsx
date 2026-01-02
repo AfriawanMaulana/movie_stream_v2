@@ -11,11 +11,12 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
   searchParams: Promise<{ page?: string; genre?: string }>;
 }) {
+  const { slug } = await params;
   const sp = await searchParams;
-  const region = params.slug as string;
+  const region = slug as string;
   const page = Number(sp.page) || 1;
   const genreSlug = sp.genre;
 
