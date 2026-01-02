@@ -12,11 +12,10 @@ export default async function Page({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: { page?: string; genre?: string };
+  searchParams: Promise<{ page?: string; genre?: string }>;
 }) {
-  const Params = await params;
   const sp = await searchParams;
-  const region = Params.slug;
+  const region = params.slug;
   const page = Number(sp.page) || 1;
   const genreSlug = sp.genre;
 
@@ -33,7 +32,7 @@ export default async function Page({
           region === "id" ? "id-ID" : "en-US"
         }&with_original_language=${region}${
           genreId ? `&with_genres=${genreId}` : ""
-        }&sort_by=primary_release_date.desc&relase_date.lte=${today}&page=${page}`
+        }&sort_by=primary_release_date.desc&release_date.lte=${today}&page=${page}`
       : `/api/tmdb/discover/movie?region=${region?.toUpperCase()}&page=${page}&with_original_language=${region}&sort_by=primary_release_date.desc`
   );
 
@@ -51,10 +50,7 @@ export default async function Page({
       <Navbar />
 
       <section className="px-5 lg:px-14 py-20 space-y-6">
-        {/* FILTER */}
         <GenreFilter />
-
-        {/* MOVIES */}
         <MovieList
           data={movies}
           category="movie"

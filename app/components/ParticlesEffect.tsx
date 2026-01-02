@@ -1,5 +1,4 @@
 "use client";
-import confetti from "canvas-confetti";
 import { useEffect, useState } from "react";
 import FireworksParticles from "./FireworkParticles";
 
@@ -75,17 +74,6 @@ const ChristmasParticles = () => {
       `}</style>
     </div>
   );
-};
-
-const Fireworks = () => {
-  useEffect(() => {
-    confetti({
-      particleCount: 200,
-      spread: 150,
-      origin: { y: 1 },
-    });
-  }, []);
-  return null;
 };
 
 export default function ParticlesDemo() {
