@@ -101,6 +101,7 @@ export default function Footer() {
             alt="logo.png"
             width={200}
             height={200}
+            priority
             className="w-48 h-auto"
           />
         </Link>

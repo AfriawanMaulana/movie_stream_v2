@@ -204,6 +204,7 @@ export default function Navbar() {
           alt="logo-newyear.png"
           width={130}
           height={130}
+          priority
           className="w-36 h-auto"
         />
       </Link>

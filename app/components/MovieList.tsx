@@ -1,9 +1,8 @@
 "use client";
-import axios from "axios";
+
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Pagination,
   PaginationContent,
@@ -14,81 +13,64 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-//* TMDB DATA TYPE
-interface DataType {
-  results: [
-    {
-      id: number;
-      title: string;
-      adult: boolean;
-      poster_path: string;
-      release_date: string;
+/* ================= TYPES ================= */
 
-      name: string; //? TV series
-      first_air_date: string; //? TV series
-    }
-  ];
+interface MovieItem {
+  id: number;
+  title?: string;
+  name?: string;
+  poster_path: string;
+  release_date?: string;
+  first_air_date?: string;
+}
+
+interface DataType {
+  results: MovieItem[];
   total_pages: number;
 }
 
+/* ================= COMPONENT ================= */
+
 export default function MovieList({
-  API_URL,
-  isPagination,
+  data,
   category,
   header,
-  isParam,
+  isPagination,
   seeAll,
-  filterCountry,
 }: {
-  API_URL: string;
-  isPagination?: boolean;
+  data: DataType;
   category: string;
   header?: string;
-  isParam?: boolean;
+  isPagination?: boolean;
   seeAll?: string;
-  filterCountry?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [data, setData] = useState<DataType>();
+  const pathname = usePathname();
 
   const currentPage = Number(searchParams.get("page")) || 1;
+  const totalPages = data?.total_pages ?? 1;
 
-  //* FETCHING FROM TMDB API
-  useEffect(() => {
-    axios
-      .get(`${API_URL}${isParam ? "&" : "?"}page=${currentPage}`)
-      .then((res) => setData(res.data))
-      .catch((err) => console.error(err));
+  /* ================= HELPERS ================= */
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [API_URL, currentPage, isParam, filterCountry]);
-
-  //* UPDATE URL WITH NEW PAGE
-  const updatePage = (newPage: number) => {
+  const updatePage = (page: number) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", newPage.toString());
-    router.push(`?${params.toString()}`);
+    params.set("page", page.toString());
+    router.push(`${pathname}?${params.toString()}`);
   };
 
-  //* HANDLE NEXT PAGE BUTTON
-  const handleNext = () => {
-    if (data && currentPage >= 1 && currentPage < data.total_pages) {
-      updatePage(currentPage + 1);
-    }
+  const slugify = (str?: string) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "");
   };
 
-  //* HANDLE PREVIOUS PAGE BUTTON
-  const handlePrev = () => {
-    if (currentPage > 1) {
-      updatePage(currentPage - 1);
-    }
-  };
+  /* ================= PAGINATION ================= */
 
-  //* PAGINATION
   const visiblePages = 5;
   const half = Math.floor(visiblePages / 2);
-  const totalPages = data?.total_pages ?? 1;
 
   let startPage = Math.max(1, currentPage - half);
   const endPage = Math.min(totalPages, startPage + visiblePages - 1);
@@ -97,105 +79,92 @@ export default function MovieList({
     startPage = Math.max(1, endPage - visiblePages + 1);
   }
 
-  const pageNumbers = [];
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
+  const pageNumbers = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
 
-  //* URL FRIENDLY
-  const slugify = (str: string) => {
-    if (!str) return "";
-    return str
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)+/g, "");
-  };
+  if (!data?.results?.length) return null;
 
-  if (!data?.results) return;
+  /* ================= RENDER ================= */
+
   return (
     <div>
+      {/* Header */}
       <div className="flex w-full justify-between items-center">
         <h1 className="text-xl px-4 my-4 border-l-2 border-red-500">
-          {data?.results[0] && header?.toUpperCase()}
+          {header?.toUpperCase()}
         </h1>
         {seeAll && (
           <Link
-            href={`${seeAll}`}
+            href={seeAll}
             className="text-[11px] bg-red-500 hover:bg-red-600 text-white/80 rounded-[4px] py-1 px-3"
           >
             SEE ALL
           </Link>
         )}
       </div>
-      <div
-        id="movie-container"
-        className="movie-container mb-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4 space-y-3 border-b border-white/20"
-      >
-        {data?.results.map((item) => {
-          if (!item.poster_path) return;
+
+      {/* Movie Grid */}
+      <div className="mb-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4 border-b border-white/20">
+        {data.results.map((item) => {
+          if (!item.poster_path) return null;
+
+          const title = item.title || item.name;
+
           return (
             <div key={item.id} className="flex flex-col space-y-2 h-60 md:h-80">
               <Link
-                href={`/${category}/${slugify(item.title || item.name)}?id=${
-                  item.id
-                }`}
+                href={`/${category}/${slugify(title)}?id=${item.id}`}
                 className="group w-full h-full relative overflow-hidden rounded-xl"
               >
                 <Image
                   src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
-                  width={130}
-                  height={130}
-                  alt={item.title || item.name}
-                  priority
-                  className="w-full h-full object-cover hover:brightness-20 hover:scale-110 transition-all duration-200 ease-in-out"
+                  alt={title || "movie"}
+                  width={200}
+                  height={300}
+                  className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-50 group-hover:scale-110"
                 />
+
+                {/* Badge */}
                 <div
-                  className={`${
-                    category.toLowerCase() === "movie"
-                      ? "bg-red-500"
-                      : "bg-green-500"
-                  } absolute top-0 left-0 text-xs font-semibold px-4 py-0.5`}
+                  className={`absolute top-0 left-0 text-xs font-semibold px-4 py-0.5 ${
+                    category === "movie" ? "bg-red-500" : "bg-green-500"
+                  }`}
                 >
-                  {category.toLowerCase() === "movie" ? "MOVIE" : "TV"}
+                  {category === "movie" ? "MOVIE" : "TV"}
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none w-full h-full">
+
+                {/* Logo Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <Image
-                    src={"/logo.png"}
-                    alt="logo.png"
+                    src="/logo.png"
+                    alt="logo"
                     width={150}
                     height={150}
-                    className="w-36 h-auto opacity-0 group-hover:opacity-100 scale-120 group-hover:scale-100 transition-all duration-500 ease-in-out"
+                    className="w-40 h-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   />
                 </div>
               </Link>
+
+              {/* Title & Date */}
               <div>
                 <Link
-                  href={`/${category}/${slugify(item.title || item.name)}?id=${
-                    item.id
-                  }`}
+                  href={`/${category}/${slugify(title)}?id=${item.id}`}
                   className="text-sm hover:text-red-500"
                 >
-                  <h3 className="truncate">{item.title || item.name}</h3>
+                  <h3 className="truncate">{title}</h3>
                 </Link>
+
                 <p className="text-xs text-slate-400">
-                  {(item.release_date &&
+                  {(item.release_date || item.first_air_date) &&
                     new Intl.DateTimeFormat("en-GB", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
-                    })
-                      .format(new Date(item.release_date))
-                      .split(" ")
-                      .join(", ")) ||
-                    (item.first_air_date &&
-                      new Intl.DateTimeFormat("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                        .format(new Date(item.first_air_date))
-                        .split(" ")
-                        .join(", "))}
+                    }).format(
+                      new Date(item.release_date || item.first_air_date!)
+                    )}
                 </p>
               </div>
             </div>
@@ -203,13 +172,13 @@ export default function MovieList({
         })}
       </div>
 
-      {/* Pagination Button */}
-      {data.results[0] && isPagination && (
+      {/* Pagination */}
+      {isPagination && totalPages > 1 && (
         <Pagination>
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={handlePrev}
+                onClick={() => updatePage(currentPage - 1)}
                 className={
                   currentPage === 1
                     ? "pointer-events-none opacity-50"
@@ -217,23 +186,26 @@ export default function MovieList({
                 }
               />
             </PaginationItem>
-            {pageNumbers.map((pageNum) => (
-              <PaginationItem key={pageNum}>
+
+            {pageNumbers.map((page) => (
+              <PaginationItem key={page}>
                 <PaginationLink
-                  isActive={currentPage === pageNum}
-                  onClick={() => updatePage(pageNum)}
+                  isActive={currentPage === page}
+                  onClick={() => updatePage(page)}
                   className="cursor-pointer"
                 >
-                  {pageNum}
+                  {page}
                 </PaginationLink>
               </PaginationItem>
             ))}
+
             <PaginationItem>
               <PaginationEllipsis />
             </PaginationItem>
+
             <PaginationItem>
               <PaginationNext
-                onClick={handleNext}
+                onClick={() => updatePage(currentPage + 1)}
                 className={
                   currentPage === totalPages
                     ? "pointer-events-none opacity-50"
