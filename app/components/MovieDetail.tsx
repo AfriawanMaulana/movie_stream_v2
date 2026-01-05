@@ -33,6 +33,11 @@ const servers = [
     name: "Server 2",
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/movie`,
   },
+  {
+    id: 3,
+    name: "Server 3",
+    endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
+  },
 ];
 
 export default function MovieDetail() {
@@ -139,7 +144,7 @@ export default function MovieDetail() {
       <div>
         <iframe
           loading="lazy"
-          src={`${stream_url}/${movie_id}?autoPlay=false`}
+          src={`${stream_url}/${movie_id}`}
           title="Movie player"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -164,6 +169,7 @@ export default function MovieDetail() {
             </button>
           ))}
         </div>
+
         <div className="flex gap-5 border-b border-white/20 pb-4">
           <Image
             src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
