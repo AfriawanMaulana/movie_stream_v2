@@ -6,7 +6,7 @@ export async function getMovies(apiUrl: string, page?: number) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BASE_URL}${apiUrl}?page=${page}`,
     {
-      cache: "force-cache",
+      cache: "no-store",
     }
   );
 

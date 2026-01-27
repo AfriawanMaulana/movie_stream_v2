@@ -11,12 +11,15 @@ export async function GET(
     const searchParams = new URL(req.url).searchParams;
     const query = searchParams.toString();
 
-    const res = await fetch(`${process.env.TMDB_API}/${fullPath}?${query}`, {
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${process.env.TMDB_TOKEN}`,
-      },
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_DRAMABOS_API}/${fullPath}?${query}`,
+      {
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${process.env.TMDB_TOKEN}`,
+        },
+      }
+    );
 
     const data = await res.json();
     return NextResponse.json(data);

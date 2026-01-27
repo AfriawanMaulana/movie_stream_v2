@@ -1,6 +1,5 @@
 import { getMovies } from "@/lib/tmdb/getMovies";
 import MovieList from "../components/MovieList";
-import Navbar from "../components/Navbar";
 import { Suspense } from "react";
 import MovieSkeleton from "../components/MovieSkeleton";
 
@@ -18,7 +17,6 @@ export default async function Page({
   return (
     <div className="flex flex-col">
       <title>TV Series - TERFLIX</title>
-      <Navbar />
       <section className="px-5 lg:px-14 py-20">
         <Suspense fallback={<MovieSkeleton />}>
           <MovieList

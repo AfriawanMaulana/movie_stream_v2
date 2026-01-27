@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import Navbar from "@/app/components/Navbar";
 import MovieList from "@/app/components/MovieList";
 import GenreFilter from "./GenreFilter";
 import { getMovies } from "@/lib/tmdb/getMovies";
@@ -38,7 +37,6 @@ export default async function Page({
 
   return (
     <>
-      <Navbar />
       <section className="px-5 lg:px-14 py-20">
         <div className="relative border-t-2 border-white/20 flex w-full h-0 mt-10 items-center justify-center">
           <h1 className="font-semibold text-3xl bg-background absolute px-4">

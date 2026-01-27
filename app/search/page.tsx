@@ -1,4 +1,3 @@
-import Navbar from "@/app/components/Navbar";
 import MovieList from "../components/MovieList";
 import SearchInput from "../components/SearchInput";
 import SearchFilter from "./SearchFilter";
@@ -24,7 +23,6 @@ export default async function Page({
   return (
     <div>
       <title>Search - TERFLIX</title>
-      <Navbar />
       <section className="px-5 lg:px-14 py-20 flex flex-col">
         <div>
           <h1 className="text-2xl px-4 my-4 border-l-2 border-red-500">

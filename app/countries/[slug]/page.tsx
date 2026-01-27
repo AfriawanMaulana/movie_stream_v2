@@ -1,4 +1,3 @@
-import Navbar from "@/app/components/Navbar";
 import MovieList from "@/app/components/MovieList";
 import NotFound from "@/app/components/NotFound";
 import GenreFilter from "./GenreFilter";
@@ -38,27 +37,13 @@ export default async function Page({
   );
 
   if (movies.total_results === 0) {
-    return (
-      <>
-        <Navbar />
-        <NotFound />
-      </>
-    );
+    return <NotFound />;
   }
 
   return (
-    <>
-      <Navbar />
-
-      <section className="px-5 lg:px-14 py-20 space-y-6">
-        <GenreFilter />
-        <MovieList
-          data={movies}
-          category="movie"
-          header="Popular"
-          isPagination
-        />
-      </section>
-    </>
+    <section className="px-5 lg:px-14 py-20 space-y-6">
+      <GenreFilter />
+      <MovieList data={movies} category="movie" header="Popular" isPagination />
+    </section>
   );
 }

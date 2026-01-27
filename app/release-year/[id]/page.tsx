@@ -28,8 +28,7 @@ export default async function Page({
   console.log(year);
   return (
     <>
-      <Navbar />
-
+      <title>{year} - TERFLIX</title>
       <section className="px-5 lg:px-14 py-20 flex flex-col space-y-10">
         {/* Title */}
         <div className="relative border-t-2 border-white/20 flex w-full h-0 mt-10 items-center justify-center">

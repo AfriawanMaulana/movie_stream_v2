@@ -1,4 +1,3 @@
-import Navbar from "../components/Navbar";
 import Link from "next/link";
 
 const DataCountries = [
@@ -12,7 +11,7 @@ export default function Page() {
   return (
     <div>
       <title>Genre - TERFLIX</title>
-      <Navbar />
+
       <section className="flex flex-col space-y-8 px-5 lg:px-14 py-20">
         <div className="p-4 border-b border-white/20">
           <h1 className="text-4xl">Countries</h1>

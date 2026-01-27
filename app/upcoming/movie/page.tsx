@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getMovies } from "@/lib/tmdb/getMovies";
 import MovieSkeleton from "@/app/components/MovieSkeleton";
-import Navbar from "@/app/components/Navbar";
 import MovieList from "@/app/components/MovieList";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +22,6 @@ export default async function Page({
   return (
     <div>
       <title>Up Coming - TERFLIX</title>
-      <Navbar />
       <section className="px-5 lg:px-14 py-20">
         <Suspense fallback={<MovieSkeleton />}>
           <MovieList
