@@ -6,11 +6,10 @@ import ParticlesDemo from "./components/ParticlesEffect";
 import SearchInput from "./components/SearchInput";
 import { getMovies } from "@/lib/tmdb/getMovies";
 export default async function Home() {
-  const nowPlaying = await getMovies("/api/tmdb/movie/now_playing?");
-
-  const popular = await getMovies("/api/tmdb/movie/popular");
-
-  const tvTrending = await getMovies("/api/tmdb/trending/tv/day");
+  const page = 1;
+  const nowPlaying = await getMovies("/api/tmdb/movie/now_playing", page);
+  const popular = await getMovies("/api/tmdb/movie/popular", page);
+  const tvTrending = await getMovies("/api/tmdb/trending/tv/day", page);
 
   return (
     <div>
