@@ -34,8 +34,6 @@ export default async function Page({
             {year}
           </h1>
         </div>
-
-        {/* Category Toggle */}
         <CategorySwitch active={category} />
 
         {/* Movies */}
