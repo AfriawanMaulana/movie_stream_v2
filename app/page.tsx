@@ -3,7 +3,7 @@ import MovieList from "./components/MovieList";
 import ParticlesDemo from "./components/ParticlesEffect";
 import SearchInput from "./components/SearchInput";
 import { getMovies } from "@/lib/tmdb/getMovies";
-
+import { Suspense } from "react";
 export default async function Home({
   searchParams,
 }: {
@@ -22,7 +22,9 @@ export default async function Home({
     <div>
       <ParticlesDemo />
       <section className="px-5 lg:px-14 py-20 flex flex-col">
-        <SearchInput />
+        <Suspense fallback={null}>
+          <SearchInput />
+        </Suspense>
         <div className="space-y-10">
           <MovieList
             data={nowPlaying}

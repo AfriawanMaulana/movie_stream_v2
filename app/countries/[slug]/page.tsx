@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import MovieList from "@/app/components/MovieList";
 import NotFound from "@/app/components/NotFound";
 import GenreFilter from "./GenreFilter";
@@ -15,7 +16,8 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const sp = await searchParams;
-  const region = slug as string;
+
+  const region = slug;
   const page = Number(sp.page) || 1;
   const genreSlug = sp.genre;
 
@@ -26,14 +28,13 @@ export default async function Page({
   }
 
   const today = new Date().toISOString().split("T")[0];
+
   const movies = await getMovies(
     genreId
       ? `/api/tmdb/discover/movie?region=${region.toUpperCase()}&language=${
           region === "id" ? "id-ID" : "en-US"
-        }&with_original_language=${region}${
-          genreId ? `&with_genres=${genreId}` : ""
-        }&sort_by=primary_release_date.desc&release_date.lte=${today}&page=${page}`
-      : `/api/tmdb/discover/movie?region=${region?.toUpperCase()}&page=${page}&with_original_language=${region}&sort_by=primary_release_date.desc`
+        }&with_original_language=${region}&with_genres=${genreId}&sort_by=primary_release_date.desc&release_date.lte=${today}&page=${page}`
+      : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&page=${page}&with_original_language=${region}&sort_by=primary_release_date.desc`
   );
 
   if (movies.total_results === 0) {
@@ -42,7 +43,10 @@ export default async function Page({
 
   return (
     <section className="px-5 lg:px-14 py-20 space-y-6">
-      <GenreFilter />
+      <Suspense fallback={null}>
+        <GenreFilter />
+      </Suspense>
+
       <MovieList data={movies} category="movie" header="Popular" isPagination />
     </section>
   );

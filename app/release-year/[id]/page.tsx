@@ -1,4 +1,3 @@
-import Navbar from "@/app/components/Navbar";
 import MovieList from "@/app/components/MovieList";
 import CategorySwitch from "./Category";
 import { getMovies } from "@/lib/tmdb/getMovies";
@@ -25,7 +24,6 @@ export default async function Page({
 
   const movies = await getMovies(apiUrl, page);
 
-  console.log(year);
   return (
     <>
       <title>{year} - TERFLIX</title>
