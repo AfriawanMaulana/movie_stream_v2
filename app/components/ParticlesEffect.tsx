@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import FireworksParticles from "./FireworkParticles";
+// import FireworksParticles from "./FireworkParticles";
 
 interface Particle {
   id: number;
@@ -11,8 +11,7 @@ interface Particle {
   type: string;
 }
 
-const event = "newyear";
-const ChristmasParticles = () => {
+const Particles = () => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [show, setShow] = useState(true);
 
@@ -20,10 +19,10 @@ const ChristmasParticles = () => {
     const newParticles = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      animationDuration: 3 + Math.random() * 4,
+      animationDuration: 2 + Math.random() * 4,
       animationDelay: Math.random() * 2,
-      size: 10 + Math.random() * 20,
-      type: ["❄️", "🎄", "🎁", "⛄", "⭐", "❄️"][Math.floor(Math.random() * 5)],
+      size: 15 + Math.random() * 20,
+      type: ["💖", "💝", "🌺", "🌷"][Math.floor(Math.random() * 5)],
     }));
 
     setParticles(newParticles);
@@ -42,7 +41,7 @@ const ChristmasParticles = () => {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50 bg-gradient-to-b from-white/50 via-white/0 to-white/0">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50 bg-gradient-to-b from-pink-500/30 via-white/0 to-white/0">
       {particles.map((particle) => (
         <div
           key={particle.id}
@@ -80,7 +79,8 @@ const ChristmasParticles = () => {
 export default function ParticlesDemo() {
   return (
     <div className="min-h-screen absolute">
-      {event == "newyear" ? <FireworksParticles /> : <ChristmasParticles />}
+      {/* <FireworksParticles /> */}
+      <Particles />
     </div>
   );
 }
