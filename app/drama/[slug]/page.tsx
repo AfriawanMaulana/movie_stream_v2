@@ -1,14 +1,9 @@
 import DramaDetail from "../components/DramaDetail";
 
-type SearchParams = {
-  id: string;
-  ep?: string;
-};
-
 export default async function Page({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<{ id: string; ep?: string }>;
 }) {
   const params = await searchParams;
   const dramaId = params.id;
