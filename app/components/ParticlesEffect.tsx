@@ -22,7 +22,7 @@ const Particles = () => {
       animationDuration: 2 + Math.random() * 4,
       animationDelay: Math.random() * 2,
       size: 15 + Math.random() * 20,
-      type: ["💖", "💝", "🌺", "🌷"][Math.floor(Math.random() * 5)],
+      type: ["🌙", "✨", "⭐"][Math.floor(Math.random() * 5)],
     }));
 
     setParticles(newParticles);
@@ -41,7 +41,7 @@ const Particles = () => {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50 bg-gradient-to-b from-pink-500/30 via-white/0 to-white/0">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50 bg-gradient-to-b from-yellow-500/30 via-white/0 to-white/0">
       {particles.map((particle) => (
         <div
           key={particle.id}

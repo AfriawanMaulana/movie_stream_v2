@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { Suspense } from "react";
-import MovieSkeleton from "../components/MovieSkeleton";
+import MovieSkeleton from "../../app/components/MovieSkeleton";
 import DramaList from "./components/DramaList";
 import { getDramas } from "@/lib/dramabos/getDramas";
 

@@ -91,14 +91,17 @@ const navLinks = [
   },
 ];
 
+//* Logo
+const logoPath = "/logo-ramadhan.png";
+
 export default function Footer() {
   return (
     <footer className="flex flex-col gap-6 md:flex-row justify-between w-full h-auto border-t border-white/20 px-5 lg:px-14 py-10">
       <div className="flex flex-col space-y-3 items-center md:items-start w-full md:w-96">
         <Link href={"/"} className="font-black text-2xl text-red-500">
           <Image
-            src={"/logo-newyear.png"}
-            alt="logo.png"
+            src={logoPath}
+            alt={logoPath}
             width={200}
             height={200}
             priority
