@@ -3,10 +3,15 @@
 export const tags = ["tmdb"];
 
 export async function getMovies(apiUrl: string, page?: number) {
+  const isParams = apiUrl.includes("?");
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}${apiUrl}?page=${page}`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}${apiUrl}${
+      isParams ? "&" : "?"
+    }page=${page}`,
     {
-      cache: "no-store",
+      next: {
+        revalidate: 300,
+      },
     }
   );
 

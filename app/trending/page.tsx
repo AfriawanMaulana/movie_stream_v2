@@ -15,7 +15,8 @@ export default async function Page({
   const query = params?.get || "movie";
 
   const trending = await getMovies(
-    `/api/tmdb/trending/${query}/week?language=en-US&page=${page}`
+    `/api/tmdb/trending/${query}/week?language=en-US`,
+    page
   );
 
   return (

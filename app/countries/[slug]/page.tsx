@@ -33,8 +33,9 @@ export default async function Page({
     genreId
       ? `/api/tmdb/discover/movie?region=${region.toUpperCase()}&language=${
           region === "id" ? "id-ID" : "en-US"
-        }&with_original_language=${region}&with_genres=${genreId}&sort_by=primary_release_date.desc&release_date.lte=${today}&page=${page}`
-      : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&page=${page}&with_original_language=${region}&sort_by=primary_release_date.desc`
+        }&with_original_language=${region}&with_genres=${genreId}&sort_by=primary_release_date.desc&release_date.lte=${today}`
+      : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&with_original_language=${region}`,
+    page
   );
 
   if (movies.total_results === 0) {

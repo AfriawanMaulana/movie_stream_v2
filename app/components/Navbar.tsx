@@ -23,7 +23,7 @@ const navLinks = [
         />
       </svg>
     ),
-    main_path: "/movies",
+    main_path: "/movie",
     path: [
       { pathname: "Most Watched", pathUrl: "/trending?get=movie" },
       { pathname: "Top Rated", pathUrl: "/top?get=movie" },
@@ -136,7 +136,7 @@ const navLinks = [
 ];
 
 //* Logo
-const logoPath = "/logo-ramadhan.png";
+const logoPath = "/logo.png";
 
 export default function Navbar() {
   const router = useRouter();

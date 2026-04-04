@@ -92,7 +92,7 @@ const navLinks = [
 ];
 
 //* Logo
-const logoPath = "/logo-ramadhan.png";
+const logoPath = "/logo.png";
 
 export default function Footer() {
   return (

@@ -16,7 +16,8 @@ export default async function Page({
   const query = params?.get || "movie";
 
   const up_coming = await getMovies(
-    `/api/tmdb/discover/movie?sort_by=release_date&primary_release_date.gte=${today}&page=${page}`
+    `/api/tmdb/discover/movie?sort_by=release_date&primary_release_date.gte=${today}`,
+    page
   );
 
   return (
