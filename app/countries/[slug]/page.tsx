@@ -27,13 +27,15 @@ export default async function Page({
     genreId = await getGenreId(genreSlug);
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  // const today = new Date().toISOString().split("T")[0]; &sort_by=primary_release_date.desc&release_date.lte=${today}
 
   const movies = await getMovies(
     genreId
       ? `/api/tmdb/discover/movie?region=${region.toUpperCase()}&language=${
           region === "id" ? "id-ID" : "en-US"
-        }&with_original_language=${region}&with_genres=${genreId}&sort_by=primary_release_date.desc&release_date.lte=${today}`
+        }&with_original_language=${region}${
+          genreId && `&with_genres=${genreId}`
+        }`
       : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&with_original_language=${region}`,
     page
   );
