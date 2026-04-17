@@ -27,7 +27,7 @@ export default async function Home() {
           <MovieList
             data={nowPlaying}
             category="movie"
-            header="rilis terbaru"
+            header="rilis terbaruuu"
             seeAll="/movie"
           />
           {/* <MovieList

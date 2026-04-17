@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Terflix",
     short_name: "Terflix",
     description:
-      "platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
+      "Platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
     start_url: "/",
     display: "standalone",
     background_color: "#000000",

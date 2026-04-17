@@ -8,7 +8,10 @@ import PWAUpdater from "./pwa-updater";
 
 export const metadata: Metadata = {
   title: "TERFLIX - Nonton Film, Serial TV berbagai Subtitle",
-  description: "Free Movie Streaming",
+  manifest: "/app/manifest.ts",
+  themeColor: "#000000",
+  description:
+    "Platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
   icons: {
     icon: "/favicon.png",
   },
