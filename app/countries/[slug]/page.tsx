@@ -31,12 +31,14 @@ export default async function Page({
 
   const movies = await getMovies(
     genreId
-      ? `/api/tmdb/discover/movie?region=${region.toUpperCase()}&language=${
+      ? `/api/tmdb/discover/movie?region=${region.toUpperCase()}&include_adult=false&language=${
           region === "id" ? "id-ID" : "en-US"
         }&with_original_language=${region}${
           genreId && `&with_genres=${genreId}`
         }`
-      : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&with_original_language=${region}`,
+      : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&language=${
+          region === "id" ? "id-ID" : "en-US"
+        }&with_original_language=${region}&include_adult=false`,
     page
   );
 

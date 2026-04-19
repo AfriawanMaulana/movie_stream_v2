@@ -18,10 +18,12 @@ import {
 interface MovieItem {
   id: number;
   title?: string;
+  original_title?: string;
   name?: string;
   poster_path: string;
   release_date?: string;
   first_air_date?: string;
+  original_language?: string;
 }
 
 interface DataType {
@@ -112,7 +114,10 @@ export default function MovieList({
         {data.results.map((item) => {
           if (!item.poster_path) return null;
 
-          const title = item.title || item.name;
+          const title =
+            item.original_language === "id"
+              ? item.original_title || item.title
+              : item.title || item.name;
 
           return (
             <div key={item.id} className="flex flex-col space-y-2 h-60 md:h-80">

@@ -10,6 +10,9 @@ import Link from "next/link";
 interface DataType {
   id: number;
   title: string;
+  original_title: string;
+  original_language: string;
+
   genres: [
     {
       id: number;
@@ -181,7 +184,11 @@ export default function MovieDetail() {
             className="w-36 md:w-40 h-auto object-cover"
           />
           <div className="flex flex-col space-y-1">
-            <h1 className="text-2xl md:text-3xl">{data?.title}</h1>
+            <h1 className="text-2xl md:text-3xl">
+              {data?.original_language === "id"
+                ? data?.original_title
+                : data?.title}
+            </h1>
             <p className="opacity-70 text-sm md:text-md">{data?.tagline}</p>
             <p className="opacity-50 text-sm">{data?.release_date}</p>
             <div className="flex flex-wrap gap-2">
