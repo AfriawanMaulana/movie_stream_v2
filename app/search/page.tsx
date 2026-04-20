@@ -13,11 +13,13 @@ export default async function Page({
   searchParams: Promise<{ page?: string; query?: string; category?: string }>;
 }) {
   const params = await searchParams;
+
   const page = Number(params.page) || 1;
   const search = await getMovies(
-    `/api/tmdb/search/${params.category || "movie"}?query=${encodeURIComponent(
+    `/api/tmdb/search/movie?query=${encodeURIComponent(
       params.query as string
-    )}&page=${page}`
+    )}`,
+    page
   );
 
   return (
