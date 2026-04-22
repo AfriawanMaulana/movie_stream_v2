@@ -29,7 +29,8 @@ const servers = [
   {
     id: 1,
     name: "Server 1",
-    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
+    endpoint: `https://vidsrc.ru/movie`,
+    // endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
   },
   {
     id: 2,
@@ -147,14 +148,16 @@ export default function MovieDetail() {
       <div>
         <iframe
           loading="lazy"
-          src={`${stream_url}/${movie_id}`}
+          src={`${stream_url}/${movie_id}?autoplay=true&colour=ff0000&backbutton=https://terflix.vercel.app&logo=https://terflix.vercel.app/favicon.png`}
           title="Movie player"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           referrerPolicy="no-referrer"
-          sandbox={
-            switchServer === 1 ? "allow-scripts allow-same-origin" : undefined
-          }
+          // sandbox={
+          //   switchServer === 1
+          //     ? "allow-scripts allow-same-origin allow-forms"
+          //     : undefined
+          // }
           className="flex w-full h-[315px] md:h-screen"
         ></iframe>
       </div>
