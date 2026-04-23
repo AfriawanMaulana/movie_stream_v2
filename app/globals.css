@@ -1,24 +1,31 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 .custom-scrollbar {
-  &::-webkit-scrollbar{
-    @apply w-1
+  &::-webkit-scrollbar {
+    @apply w-1;
   }
-  
+
   &::-webkit-scrollbar-thumb {
-    @apply bg-red-700 rounded-lg
+    @apply bg-red-700 rounded-lg;
   }
 }
 
-&::-webkit-scrollbar{
-    width: 10px;
+@utility no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
   }
-  
-  &::-webkit-scrollbar-thumb {
-    background-color: red;
-  }
+}
+
+&::-webkit-scrollbar {
+  width: 10px;
+}
+
+&::-webkit-scrollbar-thumb {
+  background-color: red;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -141,18 +148,23 @@
 /* HTML: <div class="loader"></div> */
 .loader {
   width: 45px;
-  aspect-ratio: .75;
+  aspect-ratio: 0.75;
   --c: no-repeat linear-gradient(#ff0000 0 0);
-  background: 
-    var(--c) 0%   100%,
-    var(--c) 50%  100%,
-    var(--c) 100% 100%;
+  background: var(--c) 0% 100%, var(--c) 50% 100%, var(--c) 100% 100%;
   background-size: 20% 65%;
   animation: l5 1s infinite linear;
 }
 @keyframes l5 {
-  20% {background-position: 0% 50% ,50% 100%,100% 100%}
-  40% {background-position: 0% 0%  ,50% 50% ,100% 100%}
-  60% {background-position: 0% 100%,50% 0%  ,100% 50% }
-  80% {background-position: 0% 100%,50% 100%,100% 0%  }
+  20% {
+    background-position: 0% 50%, 50% 100%, 100% 100%;
+  }
+  40% {
+    background-position: 0% 0%, 50% 50%, 100% 100%;
+  }
+  60% {
+    background-position: 0% 100%, 50% 0%, 100% 50%;
+  }
+  80% {
+    background-position: 0% 100%, 50% 100%, 100% 0%;
+  }
 }

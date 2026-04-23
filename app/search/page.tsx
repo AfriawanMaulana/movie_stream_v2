@@ -15,12 +15,28 @@ export default async function Page({
   const params = await searchParams;
 
   const page = Number(params.page) || 1;
-  const search = await getMovies(
-    `/api/tmdb/search/movie?query=${encodeURIComponent(
-      params.query as string
-    )}`,
-    page
-  );
+  const query = params.query ?? "";
+  const category = params.category ?? "movie";
+
+  if (!query) {
+    return (
+      <div className="px-5 lg:px-14 py-20">
+        <title>Search - TERFLIX</title>
+        <h1 className="text-2xl px-4 my-4 border-l-2 border-red-500">
+          Search for Movies or TV series.
+        </h1>
+        <SearchInput />
+        <SearchFilter />
+      </div>
+    );
+  }
+
+  const endpoint =
+    category === "tv"
+      ? `/api/tmdb/search/tv?query=${encodeURIComponent(query)}`
+      : `/api/tmdb/search/movie?query=${encodeURIComponent(query)}`;
+
+  const search = await getMovies(endpoint, page);
 
   return (
     <div>
@@ -28,19 +44,14 @@ export default async function Page({
       <section className="px-5 lg:px-14 py-20 flex flex-col">
         <div>
           <h1 className="text-2xl px-4 my-4 border-l-2 border-red-500">
-            Results found: <span className="font-semibold">{params.query}</span>
+            Results found: <span className="font-semibold">{query}</span>
           </h1>
         </div>
         <SearchInput />
         <SearchFilter />
 
         <Suspense fallback={<MovieSkeleton />}>
-          <MovieList
-            data={search}
-            category={(params.category as string) || "movie"}
-            header=""
-            isPagination
-          />
+          <MovieList data={search} category={category} header="" isPagination />
         </Suspense>
       </section>
     </div>

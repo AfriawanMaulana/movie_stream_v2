@@ -19,7 +19,7 @@ const navLinks = [
         />
       </svg>
     ),
-    main_path: "/movies",
+    main_path: "/movie",
     path: [
       { pathname: "Most Watched", pathUrl: "/trending?get=movie" },
       { pathname: "Top Rated", pathUrl: "/top?get=movie" },
@@ -43,11 +43,31 @@ const navLinks = [
         />
       </svg>
     ),
-    main_path: "tv",
+    main_path: "/tv",
     path: [
       { pathname: "Most Watched", pathUrl: "/trending?get=tv" },
       { pathname: "Top Rated", pathUrl: "/top?get=tv" },
     ],
+  },
+  {
+    name: "Countries",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="size-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"
+        />
+      </svg>
+    ),
+    main_path: "/countries",
   },
   {
     name: "Genre",
@@ -92,7 +112,7 @@ const navLinks = [
 ];
 
 //* Logo
-const logoPath = "/logo.png";
+const logoPath = "/logo-2.png";
 
 export default function Footer() {
   return (
@@ -121,9 +141,12 @@ export default function Footer() {
       <div className="flex flex-wrap gap-10">
         {navLinks.map((item, i) => (
           <div key={i} className="flex flex-col gap-2">
-            <h1 className="font-semibold opacity-80 text-2xl mb-4">
+            <Link
+              href={`${item.main_path}`}
+              className="font-semibold opacity-80 text-2xl mb-4"
+            >
               {item.name}
-            </h1>
+            </Link>
             {item.path?.map((path, i) => (
               <Link
                 href={path.pathUrl}

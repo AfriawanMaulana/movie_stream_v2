@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRef } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -12,43 +13,28 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
-/* ================= TYPES ================= */
-
-interface MovieItem {
-  id: number;
-  title?: string;
-  original_title?: string;
-  name?: string;
-  poster_path: string;
-  release_date?: string;
-  first_air_date?: string;
-  original_language?: string;
-}
-
-interface DataType {
-  results: MovieItem[];
-  total_pages: number;
-}
-
-/* ================= COMPONENT ================= */
+import { DataType } from "../types";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function MovieList({
   data,
   category,
   header,
   isPagination,
+  isScroll,
   seeAll,
 }: {
   data: DataType;
   category: string;
   header?: string;
   isPagination?: boolean;
+  isScroll?: boolean;
   seeAll?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentPage = Number(searchParams.get("page")) || 1;
   const totalPages = data?.total_pages ?? 1;
@@ -59,7 +45,6 @@ export default function MovieList({
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", page.toString());
     router.push(`${pathname}?${params.toString()}`);
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -69,6 +54,14 @@ export default function MovieList({
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)+/g, "");
+  };
+
+  const scroll = (direction: "left" | "right") => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollBy({
+      left: direction === "left" ? -400 : 400,
+      behavior: "smooth",
+    });
   };
 
   /* ================= PAGINATION ================= */
@@ -109,75 +102,121 @@ export default function MovieList({
         )}
       </div>
 
-      {/* Movie Grid */}
-      <div className="mb-2 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4 border-b border-white/20">
-        {data.results.map((item) => {
-          if (!item.poster_path) return null;
+      {/* Movie Grid — Prev & Next */}
+      <div className="relative group/scroll">
+        {isScroll && (
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-1 top-[45%] -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/60 hover:bg-red-500 transition-colors opacity-0 group-hover/scroll:opacity-100 -translate-x-1 hover:scale-110"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        )}
 
-          const title =
-            item.original_language === "id"
-              ? item.original_title || item.title
-              : item.title || item.name;
+        {isScroll && (
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-1 top-[45%] -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/60 hover:bg-red-500 transition-colors opacity-0 group-hover/scroll:opacity-100 translate-x-1 hover:scale-110"
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
 
-          return (
-            <div key={item.id} className="flex flex-col space-y-2 h-60 md:h-80">
-              <Link
-                href={`/${category}/${slugify(title)}?id=${item.id}`}
-                className="group w-full h-full relative overflow-hidden rounded-xl"
+        <div
+          ref={isScroll ? scrollRef : undefined}
+          className={`${
+            isScroll
+              ? "flex overflow-x-auto space-x-4 no-scrollbar"
+              : "grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-4"
+          } mb-2 pb-2 border-b border-white/20`}
+        >
+          {data.results.map((item) => {
+            if (!item.poster_path) return null;
+
+            const title =
+              item.original_language === "id"
+                ? item.original_title || item.title
+                : item.title || item.name;
+
+            return (
+              <div
+                key={item.id}
+                className="flex flex-col space-y-2 h-60 md:h-80 flex-shrink-0 w-32 md:w-44"
               >
-                <Image
-                  src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
-                  alt={title || "movie"}
-                  width={200}
-                  height={300}
-                  unoptimized
-                  className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-50 group-hover:scale-110"
-                />
-
-                {/* Badge */}
-                <div
-                  className={`absolute top-0 left-0 text-xs font-semibold px-4 py-0.5 ${
-                    category === "movie" ? "bg-red-500" : "bg-green-500"
-                  }`}
-                >
-                  {category === "movie" ? "MOVIE" : "TV"}
-                </div>
-
-                {/* Logo Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Image
-                    src="/logo.png"
-                    alt="logo"
-                    width={150}
-                    height={150}
-                    className="w-40 h-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  />
-                </div>
-              </Link>
-
-              {/* Title & Date */}
-              <div>
                 <Link
                   href={`/${category}/${slugify(title)}?id=${item.id}`}
-                  className="text-sm hover:text-red-500"
+                  className="group w-full h-full relative overflow-hidden rounded-xl"
                 >
-                  <h3 className="truncate">{title}</h3>
+                  <Image
+                    src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                    alt={title || "movie"}
+                    width={200}
+                    height={300}
+                    unoptimized
+                    className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-50 group-hover:scale-110"
+                  />
+
+                  {/* Badge */}
+                  <div
+                    className={`absolute top-0 left-0 text-xs font-semibold px-4 py-0.5 ${
+                      category === "movie" ? "bg-red-500" : "bg-green-500"
+                    }`}
+                  >
+                    {category === "movie" ? "MOVIE" : "TV"}
+                  </div>
+
+                  {/* Rating */}
+                  <div className="absolute flex w-full justify-between bottom-1 px-1">
+                    {item.vote_average && (
+                      <div className="flex gap-1 items-center text-[#FFC81E] rounded-sm text-xs font-semibold px-1.5 py-1 bg-black/50">
+                        <Star size={14} fill="#FFC81E" />{" "}
+                        {item.vote_average.toFixed(1)}
+                      </div>
+                    )}
+
+                    {item.original_language && (
+                      <div className="text-white rounded-sm text-xs font-semibold px-1.5 py-1 bg-white/20">
+                        {item.original_language.toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Logo Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <Image
+                      src="/logo-2.png"
+                      alt="logo"
+                      width={150}
+                      height={150}
+                      className="w-40 h-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    />
+                  </div>
                 </Link>
 
-                <p className="text-xs text-slate-400">
-                  {(item.release_date || item.first_air_date) &&
-                    new Intl.DateTimeFormat("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    }).format(
-                      new Date(item.release_date || item.first_air_date!)
-                    )}
-                </p>
+                {/* Title & Date */}
+                <div>
+                  <Link
+                    href={`/${category}/${slugify(title)}?id=${item.id}`}
+                    className="text-sm hover:text-red-500"
+                  >
+                    <h3 className="truncate">{title}</h3>
+                  </Link>
+
+                  <p className="text-xs text-slate-400">
+                    {(item.release_date || item.first_air_date) &&
+                      new Intl.DateTimeFormat("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      }).format(
+                        new Date(item.release_date || item.first_air_date!)
+                      )}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Pagination */}
