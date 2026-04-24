@@ -1,9 +1,10 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade } from "swiper/modules";
+import { Autoplay, EffectFade, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-fade";
+import "swiper/css/pagination";
 import Image from "next/image";
 import Link from "next/link";
 import { Play, Star } from "lucide-react";
@@ -40,7 +41,10 @@ export default function Carousel({
       <Swiper
         spaceBetween={20}
         slidesPerView={1}
-        modules={[Autoplay, EffectFade]}
+        pagination={{
+          dynamicBullets: true,
+        }}
+        modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
         speed={1000}
         autoplay={{
@@ -48,7 +52,6 @@ export default function Carousel({
           disableOnInteraction: false,
         }}
         loop={true}
-        // className="rounded-3xl"
       >
         {data.map((item: DataProps) => (
           <SwiperSlide key={item.id} className="group relative">
@@ -77,7 +80,7 @@ export default function Carousel({
               {item.logo ? (
                 <Image
                   src={item.logo}
-                  alt={item.title}
+                  alt=""
                   width={400}
                   height={200}
                   className="max-h-[80px] md:max-h-[100px] left-0 object-left object-contain drop-shadow-lg"

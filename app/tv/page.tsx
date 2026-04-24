@@ -2,6 +2,7 @@ import { getMovies } from "@/lib/tmdb/getMovies";
 import MovieList from "../components/MovieList";
 import { Suspense } from "react";
 import MovieSkeleton from "../components/MovieSkeleton";
+import Carousel from "../components/Carousel";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function Page({
   return (
     <div className="flex flex-col">
       <title>TV Series - TERFLIX</title>
+      {tv_series && <Carousel data={tv_series.results} category="tv" />}
       <section className="px-5 lg:px-14 py-20">
         <Suspense fallback={<MovieSkeleton />}>
           <MovieList

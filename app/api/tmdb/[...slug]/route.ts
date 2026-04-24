@@ -24,13 +24,17 @@ export async function GET(
 
     const data = await res.json();
 
-    // 🔥 hanya jalan kalau endpoint movie list
-    if (fullPath.startsWith("movie") && data.results) {
+    //
+    if (
+      fullPath.startsWith("movie") ||
+      (fullPath.startsWith("tv") && data.results)
+    ) {
+      const types = fullPath.startsWith("movie") ? "movie" : "tv";
       const results = await Promise.all(
         data.results.slice(0, 10).map(async (movie: MovieItem) => {
           try {
             const imgRes = await fetch(
-              `${process.env.TMDB_API}/movie/${movie.id}/images`,
+              `${process.env.TMDB_API}/${types}/${movie.id}/images`,
               {
                 headers: {
                   accept: "application/json",

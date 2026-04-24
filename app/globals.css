@@ -11,6 +11,14 @@
   }
 }
 
+:root {
+  --swiper-theme-color: #ff0000;
+  --swiper-pagination-color: #ff0000;
+  --swiper-pagination-bottom: 0px;
+  --swiper-pagination-bullet-inactive-color: #999999;
+  --swiper-pagination-bullet-inactive-opacity: 0.5;
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
