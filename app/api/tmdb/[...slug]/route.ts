@@ -25,10 +25,7 @@ export async function GET(
     const data = await res.json();
 
     //
-    if (
-      fullPath.startsWith("movie") ||
-      (fullPath.startsWith("tv") && data.results)
-    ) {
+    if (data.results) {
       const types = fullPath.startsWith("movie") ? "movie" : "tv";
       const results = await Promise.all(
         data.results.slice(0, 10).map(async (movie: MovieItem) => {
