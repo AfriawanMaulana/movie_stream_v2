@@ -69,8 +69,8 @@ export default function TvDetail({ specific }: { specific?: string }) {
   const movie_id = useSearchParams().get("id");
   const [data, setData] = useState<DataType | null>(null);
   const [dataEpisode, setDataEpisode] = useState<EpisodeType | null>(null);
-  const [season, setSeason] = useState(2);
-  const [switchServer, setSwitchServer] = useState(1);
+  const [season, setSeason] = useState(1);
+  const [switchServer, setSwitchServer] = useState(2);
 
   const [form, setForm] = useState({
     name: "",

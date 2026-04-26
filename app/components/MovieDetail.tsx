@@ -29,7 +29,8 @@ const servers = [
   {
     id: 1,
     name: "Server 1",
-    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
+    // endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
+    endpoint: `https://vidsrc.ru/movie`,
   },
   {
     id: 2,
@@ -39,7 +40,8 @@ const servers = [
   {
     id: 3,
     name: "Server 3 (Recommended)",
-    endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
+    // endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
+    endpoint: `https://vidsrc.sbs/embed/movie`,
   },
 ];
 
