@@ -44,11 +44,33 @@ interface EpisodeType {
   ];
 }
 
+const servers = [
+  {
+    id: 1,
+    name: "Server 1",
+    disabled: true,
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/tv`,
+  },
+  {
+    id: 2,
+    name: "Server 2 (Recommended)",
+    disabled: false,
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/tv`,
+  },
+  {
+    id: 3,
+    name: "Server 3",
+    disabled: true,
+    endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/tv`,
+  },
+];
+
 export default function TvDetail({ specific }: { specific?: string }) {
   const movie_id = useSearchParams().get("id");
   const [data, setData] = useState<DataType | null>(null);
   const [dataEpisode, setDataEpisode] = useState<EpisodeType | null>(null);
-  const [season, setSeason] = useState(1);
+  const [season, setSeason] = useState(2);
+  const [switchServer, setSwitchServer] = useState(1);
 
   const [form, setForm] = useState({
     name: "",
@@ -66,7 +88,11 @@ export default function TvDetail({ specific }: { specific?: string }) {
     }>
   >([]);
 
-  const stream_url = process.env.NEXT_PUBLIC_VIDSRC_API + "/tv";
+  // const stream_url = process.env.NEXT_PUBLIC_VIDSRC_API + "/tv";
+  const stream_url = servers
+    .filter((item) => item.id === switchServer)
+    .map((e) => e.endpoint);
+
   useEffect(() => {
     // API TV Detail
     axios
@@ -168,11 +194,27 @@ export default function TvDetail({ specific }: { specific?: string }) {
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           referrerPolicy="no-referrer"
-          sandbox="allow-scripts allow-same-origin"
+          // sandbox="allow-scripts allow-same-origin"
           className="flex w-full h-[315px] md:h-screen"
         ></iframe>
       </div>
       <div className="px-5">
+        <div className=" mb-4">
+          <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
+            {servers.map((server) => (
+              <option
+                key={server.id}
+                value={server.id}
+                disabled={server.disabled}
+                onClick={() => setSwitchServer(server.id)}
+                className="hover:bg-red-500"
+              >
+                {server.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex gap-5 border-b border-white/20 pb-4">
           <Image
             src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}

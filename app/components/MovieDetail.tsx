@@ -29,17 +29,16 @@ const servers = [
   {
     id: 1,
     name: "Server 1",
-    endpoint: `https://vidsrc.ru/movie`,
-    // endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
   },
   {
     id: 2,
-    name: "Server 2",
+    name: "Server 2 (Recommended)",
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/movie`,
   },
   {
     id: 3,
-    name: "Server 3",
+    name: "Server 3 (Recommended)",
     endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
   },
 ];
@@ -162,18 +161,19 @@ export default function MovieDetail() {
         ></iframe>
       </div>
       <div className="px-5">
-        <div className="flex items-center gap-3 mb-4">
-          {servers.map((server) => (
-            <button
-              key={server.id}
-              onClick={() => setSwitchServer(server.id)}
-              className={`${
-                switchServer === server.id && "bg-red-500 text-white"
-              }text-red-500 rounded-md py-2 px-4 border border-red-500`}
-            >
-              {server.name}
-            </button>
-          ))}
+        <div className=" mb-4">
+          <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
+            {servers.map((server) => (
+              <option
+                key={server.id}
+                value={server.id}
+                onClick={() => setSwitchServer(server.id)}
+                className="hover:bg-red-500"
+              >
+                {server.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex gap-5 border-b border-white/20 pb-4">
