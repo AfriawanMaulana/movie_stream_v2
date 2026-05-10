@@ -135,7 +135,7 @@ export default function MovieList({
 
             const title =
               item.original_language === "id"
-                ? item.original_title || item.title
+                ? item.original_title || item.original_name || item.title
                 : item.title || item.name;
 
             return (

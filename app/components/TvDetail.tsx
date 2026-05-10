@@ -48,12 +48,12 @@ const servers = [
   {
     id: 1,
     name: "Server 1",
-    disabled: true,
+    disabled: false,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/tv`,
   },
   {
     id: 2,
-    name: "Server 2 (Recommended)",
+    name: "Server 2",
     disabled: false,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/tv`,
   },
@@ -70,7 +70,7 @@ export default function TvDetail({ specific }: { specific?: string }) {
   const [data, setData] = useState<DataType | null>(null);
   const [dataEpisode, setDataEpisode] = useState<EpisodeType | null>(null);
   const [season, setSeason] = useState(1);
-  const [switchServer, setSwitchServer] = useState(2);
+  const [switchServer, setSwitchServer] = useState(1);
 
   const [form, setForm] = useState({
     name: "",
