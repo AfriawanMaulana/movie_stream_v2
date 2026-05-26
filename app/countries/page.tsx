@@ -5,6 +5,14 @@ const DataCountries = [
     id: "id",
     name: "Indonesia",
   },
+  {
+    id: "th",
+    name: "Thailand",
+  },
+  {
+    id: "kr",
+    name: "Korea",
+  },
 ];
 
 export default function Page() {

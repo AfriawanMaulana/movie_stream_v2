@@ -7,6 +7,27 @@ import { getGenreId } from "@/lib/tmdb/getGenreId";
 
 export const dynamic = "force-dynamic";
 
+const language = {
+  id: "id-ID",
+  en: "en-US",
+  th: "en-US",
+  kr: "en-US",
+};
+
+const originalLanguage = {
+  id: "id",
+  en: "en",
+  th: "th",
+  kr: "ko",
+};
+
+const certificationMap = {
+  id: { country: "ID", max: "13+" },
+  en: { country: "US", max: "PG-13" },
+  // th: { country: "US", max: "PG-13" },
+  kr: { country: "KR", max: "15" },
+};
+
 export default async function Page({
   params,
   searchParams,
@@ -28,17 +49,18 @@ export default async function Page({
   }
 
   // const today = new Date().toISOString().split("T")[0]; &sort_by=primary_release_date.desc&release_date.lte=${today}
+  const langCode = language[region as keyof typeof language] ?? "en-US";
+  const originalLang =
+    originalLanguage[region as keyof typeof originalLanguage] ?? region;
+  const cert = certificationMap[region as keyof typeof certificationMap];
+  const certParams = cert
+    ? `&certification_country=${cert.country}&certification.lte=${cert.max}`
+    : "";
 
   const movies = await getMovies(
-    genreId
-      ? `/api/tmdb/discover/movie?region=${region.toUpperCase()}&include_adult=false&language=${
-          region === "id" ? "id-ID" : "en-US"
-        }&with_original_language=${region}${
-          genreId && `&with_genres=${genreId}`
-        }`
-      : `/api/tmdb/discover/movie?region=${region.toUpperCase()}&language=${
-          region === "id" ? "id-ID" : "en-US"
-        }&with_original_language=${region}&include_adult=false`,
+    `/api/tmdb/discover/movie?region=${region.toUpperCase()}&include_adult=false&language=${langCode}&with_origin_country=${region.toUpperCase()}&with_original_language=${originalLang}${
+      genreId ? `&with_genres=${genreId}` : ""
+    }${certParams}`,
     page
   );
 
