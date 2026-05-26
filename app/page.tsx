@@ -13,7 +13,7 @@ export default async function Home() {
   const nowPlaying = await getMovies("/api/tmdb/movie/now_playing", page);
   const popular = await getMovies("/api/tmdb/trending/movie/week", page);
   const indonesian = await getMovies(
-    `/api/tmdb/discover/movie?region=ID&with_original_language=id`,
+    `/api/tmdb/discover/movie?region=ID&with_origin_country=ID&with_original_language=id&certification_country=ID&certification.lte=13+`,
     page
   );
   const tvTrending = await getMovies("/api/tmdb/trending/tv/day", page);
