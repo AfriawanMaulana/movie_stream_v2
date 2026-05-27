@@ -29,7 +29,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <Navbar />
         </Suspense>
-        {children}
+        <div className="min-h-screen">{children}</div>
         <Analytics />
         <Footer />
       </body>
