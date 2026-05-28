@@ -28,7 +28,7 @@ export async function GET(
     if (data.results) {
       const types = fullPath.startsWith("movie") ? "movie" : "tv";
       const results = await Promise.all(
-        data.results.slice(0, 10).map(async (movie: MovieItem) => {
+        data.results.slice(0, 20).map(async (movie: MovieItem) => {
           try {
             const imgRes = await fetch(
               `${process.env.TMDB_API}/${types}/${movie.id}/images`,

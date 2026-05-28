@@ -1,19 +1,9 @@
 import Link from "next/link";
+import countries from "./countries.json";
 
-const DataCountries = [
-  {
-    id: "id",
-    name: "Indonesia",
-  },
-  {
-    id: "th",
-    name: "Thailand",
-  },
-  {
-    id: "kr",
-    name: "Korea",
-  },
-];
+const dataCountries = countries.results.sort((a, b) =>
+  a.english_name.localeCompare(b.english_name, "id", { sensitivity: "base" })
+);
 
 export default function Page() {
   return (
@@ -25,13 +15,13 @@ export default function Page() {
           <h1 className="text-4xl">Countries</h1>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {DataCountries?.map((country) => (
+          {dataCountries?.map((country) => (
             <Link
-              href={`/countries/${country.id}`}
-              key={country.id}
-              className="py-2.5 px-4 w-full md:w-[24.2%] rounded-md bg-white/10"
+              href={`/countries/${country.iso_3166_1}`}
+              key={country.iso_3166_1}
+              className="py-2.5 px-4 w-full md:w-[24.2%] rounded-md bg-white/10 hover:border hover:border-red-500 hover:text-red-500 transition-all duration-300 ease-in-out"
             >
-              <p className="text-2xl text-white/90">{country.name}</p>
+              <p className="text-2xl">{country.english_name}</p>
             </Link>
           ))}
         </div>

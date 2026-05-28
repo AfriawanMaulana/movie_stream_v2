@@ -8,7 +8,7 @@ export default function PWAUpdater() {
       navigator.serviceWorker.register("/sw.js");
 
       navigator.serviceWorker.addEventListener("controllerchange", () => {
-        window.location.reload(); // 🔥 auto refresh
+        window.location.reload();
       });
     }
   }, []);
