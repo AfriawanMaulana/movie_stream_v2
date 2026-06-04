@@ -45,7 +45,7 @@ const servers = [
     id: 4,
     name: "Server 4",
     // endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
-    endpoint: `https://vidsrc.sbs/embed/movie`,
+    endpoint: `https://vidsrc.wiki/embed/movie`,
   },
 ];
 
@@ -156,14 +156,14 @@ export default function MovieDetail() {
           src={`${stream_url}/${movie_id}?autoplay=true&colour=ff0000&backbutton=https://terflix.vercel.app&logo=https://terflix.vercel.app/favicon.png`}
           title="Movie player"
           allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; allowFullScreen; gyroscope; picture-in-picture"
           referrerPolicy="no-referrer"
+          className="flex w-full h-[315px] md:h-screen"
           // sandbox={
           //   switchServer === 1
           //     ? "allow-scripts allow-same-origin allow-forms"
           //     : undefined
           // }
-          className="flex w-full h-[315px] md:h-screen"
         ></iframe>
       </div>
       <div className="px-5">
