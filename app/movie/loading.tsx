@@ -1,5 +1,5 @@
-import LoadingUI from "../components/LoadingUI";
+import MovieSkeleton from "../components/MovieSkeleton";
 
 export default function Loading() {
-    return <LoadingUI />
+  return <MovieSkeleton />;
 }

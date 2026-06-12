@@ -2,15 +2,17 @@
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { UserCircle } from "lucide-react";
+import { Play, Star, User, UserCircle } from "lucide-react";
+import TVDetailSkeleton from "./TVDetailSkeleton";
 
 interface DataType {
   id: number;
   name: string;
   poster_path: string;
+  backdrop_path: string;
   tagline: string;
   first_air_date: string;
   overview: string;
@@ -24,6 +26,17 @@ interface DataType {
     }
   ];
   number_of_seasons: number;
+  original_language: string;
+  original_name: string;
+  vote_average: number;
+  last_episode_to_air: {
+    name: string;
+    runtime: number;
+    air_date: string;
+    season_number: number;
+  };
+  origin_country: [string];
+  status: string;
 }
 
 interface EpisodeType {
@@ -40,6 +53,26 @@ interface EpisodeType {
       runtime: number;
       season_number: string;
       still_path: string;
+      vote_average: number;
+    }
+  ];
+}
+
+interface CastProps {
+  cast: [
+    {
+      adult: boolean;
+      gender: number;
+      id: number;
+      known_for_department: string;
+      name: string;
+      original_name: string;
+      popularity: number;
+      profile_path: string;
+      cast_id: number;
+      character: string;
+      credit_id: string;
+      order: number;
     }
   ];
 }
@@ -48,7 +81,7 @@ const servers = [
   {
     id: 1,
     name: "Server 1",
-    disabled: false,
+    disabled: true,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/tv`,
   },
   {
@@ -65,12 +98,25 @@ const servers = [
   },
 ];
 
-export default function TvDetail({ specific }: { specific?: string }) {
+export default function TvDetail({
+  specific,
+  showVideo,
+}: {
+  specific?: string;
+  showVideo?: boolean;
+}) {
   const movie_id = useSearchParams().get("id");
   const [data, setData] = useState<DataType | null>(null);
   const [dataEpisode, setDataEpisode] = useState<EpisodeType | null>(null);
+  const [dataCast, setDataCast] = useState<CastProps | null>(null);
+  const [isWatch, setIsWatch] = useState(showVideo || false);
   const [season, setSeason] = useState(1);
-  const [switchServer, setSwitchServer] = useState(1);
+  const [switchServer, setSwitchServer] = useState(2);
+  const getParams = useParams().slug?.toString();
+
+  const match = getParams?.match(/season-(\d+)-episode-(\d+)/);
+  const season_number = match && match[1];
+  const episode_number = match && match[2];
 
   const [form, setForm] = useState({
     name: "",
@@ -105,6 +151,12 @@ export default function TvDetail({ specific }: { specific?: string }) {
       .get(`/api/tmdb/tv/${movie_id}/season/${season}`)
       .then((res) => setDataEpisode(res.data))
       .catch((err) => console.error(err));
+
+    // API Cast
+    axios
+      .get(`/api/tmdb/tv/${movie_id}/credits`)
+      .then((res) => setDataCast(res.data))
+      .catch((err) => console.error(err));
   }, [movie_id, season]);
 
   const slugify = (str: string) => {
@@ -131,6 +183,15 @@ export default function TvDetail({ specific }: { specific?: string }) {
     textareaRef.current.style.height = "auto";
     textareaRef.current.style.height =
       Math.min(textareaRef.current.scrollHeight, 120) + "px";
+  };
+
+  const scrollToPlayer = () => {
+    setIsWatch(true);
+
+    const player = document.getElementById("player");
+    if (player) {
+      player.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,60 +241,116 @@ export default function TvDetail({ specific }: { specific?: string }) {
     getComments();
   });
 
+  if (!data) return <TVDetailSkeleton />;
+
   return (
     <div className="py-20 flex flex-col space-y-10">
-      <div>
-        <iframe
-          loading="lazy"
-          src={
-            !specific
-              ? `${stream_url}/${movie_id}?autoPlay=false`
-              : `${stream_url}/${movie_id}/${specific}?autoPlay=false`
-          }
-          title="Movie player"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          referrerPolicy="no-referrer"
-          // sandbox="allow-scripts allow-same-origin"
-          className="flex w-full h-[315px] md:h-screen"
-        ></iframe>
-      </div>
-      <div className="px-5">
-        <div className=" mb-4">
-          <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
-            {servers.map((server) => (
-              <option
-                key={server.id}
-                value={server.id}
-                disabled={server.disabled}
-                onClick={() => setSwitchServer(server.id)}
-                className="hover:bg-red-500"
-              >
-                {server.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex gap-5 border-b border-white/20 pb-4">
+      <div className="flex gap-5 pb-4">
+        {/* Movie Info */}
+        <div className="relative w-full md:h-[75vh] h-[80vh]">
           <Image
-            src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
-            width={130}
-            height={130}
+            src={`https://image.tmdb.org/t/p/original/${data?.backdrop_path}`}
+            fill
             alt={`${data?.name}`}
+            unoptimized
+            className="object-cover opacity-55"
           />
-          <div className="flex flex-col space-y-1">
-            <h1 className="text-3xl">{data?.name}</h1>
-            <p className="opacity-70">{data?.tagline}</p>
-            <p className="opacity-50 text-sm">{data?.first_air_date}</p>
+          <div className="absolute inset-0 gap-10 bg-gradient-to-t from-background to-transparent w-full h-full">
+            <div className="absolute bottom-4 left-4 flex flex-col md:flex-row gap-5">
+              <Image
+                src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
+                width={130}
+                height={130}
+                alt={`${data?.name}`}
+                unoptimized
+                className="w-36 md:w-52 h-auto object-cover rounded-xl"
+              />
+              <div className="flex flex-col space-y-4">
+                {/* Title */}
+                <h1 className="text-3xl md:text-5xl font-bold">
+                  {data?.original_language === "id"
+                    ? data?.original_name
+                    : data?.name}
+                </h1>
+                {/* Rating */}
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <Star fill="gold" stroke="none" size={16} />
+                    <p className="opacity-50">
+                      {data?.vote_average.toFixed(1)} / 10
+                    </p>
+                  </span>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">
+                    {data?.number_of_seasons} Season
+                  </p>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">
+                    {data?.origin_country[0]}
+                  </p>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">
+                    {data?.first_air_date.split("-")[0]}
+                  </p>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">{data?.status}</p>
+                </div>
+
+                {/* Synopsis */}
+                <p className="opacity-50 font-sans md:w-3/4">
+                  {data?.overview}
+                </p>
+                {/* Watch Button */}
+                <button
+                  onClick={scrollToPlayer}
+                  className="flex gap-2 items-center justify-center border border-red-500 bg-red-600 hover:bg-red-700 rounded-lg p-2 cursor-pointer w-36 font-semibold text-sm h-11 transition-all ease-in-out duration-300"
+                >
+                  <Play size={16} fill="white" stroke="none" /> Watch Now
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="border-b border-white/20 pb-4">
-          <h1 className="text-xl font-sans">Synopsis</h1>
-          <p className="opacity-50 font-sans">{data?.overview}</p>
-        </div>
+      </div>
 
-        {/* Seasons & Episodes */}
+      <div className="px-5">
+        {/* Player */}
+        <div id="player">
+          {isWatch && (
+            <div>
+              <div className="mb-4">
+                <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
+                  {servers.map((server) => (
+                    <option
+                      key={server.id}
+                      value={server.id}
+                      disabled={server.disabled}
+                      onClick={() => setSwitchServer(server.id)}
+                      className="hover:bg-red-500"
+                    >
+                      {server.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <iframe
+                loading="lazy"
+                src={
+                  !specific
+                    ? `${stream_url}/${movie_id}?autoPlay=false`
+                    : `${stream_url}/${movie_id}/${specific}?autoPlay=false`
+                }
+                title="Movie player"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                referrerPolicy="no-referrer"
+                // sandbox="allow-scripts allow-same-origin"
+                className="flex w-full h-[315px] md:h-screen"
+              ></iframe>
+            </div>
+          )}
+        </div>
+        {/* Seasons */}
         <div className="flex flex-col space-y-6 my-4">
           <div className="flex flex-wrap gap-4 items-center">
             {[...Array(data?.number_of_seasons)].map((_, i) => (
@@ -249,49 +366,122 @@ export default function TvDetail({ specific }: { specific?: string }) {
             ))}
           </div>
 
-          <div className="flex flex-col max-h-96 overflow-y-auto custom-scrollbar">
+          {/* Episode */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 space-y-4">
             {dataEpisode?.episodes.map((item) => {
               if (!item.still_path) return;
+
               return (
-                <div
+                <Link
+                  href={`/episode/${slugify(data?.name as string)}-season-${
+                    item.season_number
+                  }-episode-${item.episode_number}?id=${movie_id}`}
+                  // onClick={scrollToPlayer}
                   key={item.id}
-                  className="flex py-2 gap-4 border-b border-white/20 items-center"
+                  className="flex flex-col w-full md:h-[170px] gap-2 items-center rounded-md hover:cursor-pointer"
                 >
-                  <Image
-                    src={`https://image.tmdb.org/t/p/w500${item.still_path}`}
-                    width={100}
-                    height={100}
-                    alt={`${data?.name}`}
-                  />
-                  <h1 className="border-r border-white/20 pr-4 py-2 text-sm font-semibold">
-                    {item.runtime}min
-                  </h1>
-                  <Link
-                    href={`/episode/${slugify(data?.name as string)}-season-${
-                      item.season_number
-                    }-episode-${item.episode_number}?id=${movie_id}`}
-                    className="w-full hover:text-red-500"
+                  <div
+                    className={`${
+                      Number(season_number) == Number(item.season_number) &&
+                      Number(episode_number) == Number(item.episode_number)
+                        ? "border-2 border-red-600 group-text-red-500"
+                        : ""
+                    } relative w-full hover:scale-105 transition-all ease-in-out duration-200 rounded-md`}
                   >
-                    <h1>{item.name}</h1>
-                    <p className="text-xs text-white/40">
-                      {item.air_date &&
-                        new Intl.DateTimeFormat("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
-                          .format(new Date(item.air_date))
-                          .split(" ")
-                          .join(", ")}
+                    <Image
+                      src={`https://image.tmdb.org/t/p/w500${item.still_path}`}
+                      width={100}
+                      height={100}
+                      alt={`${data?.name}`}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                    <div className="absolute w-full h-full inset-0 bg-gradient-to-t from-background/70 to-transparent rounded-md">
+                      <div className="absolute top-0 p-0.5 flex justify-between w-full">
+                        <p className="text-xs bg-black px-2 py-0.5 rounded-sm font-semibold">
+                          S
+                          {Number(item.season_number) < 10
+                            ? `0${item.season_number}`
+                            : item.season_number}
+                          E
+                          {Number(item.episode_number) < 10
+                            ? `0${item.episode_number}`
+                            : item.episode_number}
+                        </p>
+                        <p className="text-xs bg-black px-2 pu-0.5 rounded-sm">
+                          {item.air_date &&
+                            new Intl.DateTimeFormat("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })
+                              .format(new Date(item.air_date))
+                              .split(" ")
+                              .join(" ")}
+                        </p>
+                      </div>
+                      <div className="absolute bottom-0 p-0.5 flex justify-between w-full">
+                        <span className="text-xs flex items-center gap-1 bg-black px-2 py-0.5 rounded-sm">
+                          <Star fill="gold" stroke="none" size={14} />
+                          <p className="text-yellow-300 font-semibold">
+                            {item?.vote_average.toFixed(1)}
+                          </p>
+                        </span>
+                        <p className="text-xs bg-black px-2 py-0.5 rounded-sm font-semibold">
+                          {item.runtime}min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h1
+                      className={`${
+                        Number(season_number) == Number(item.season_number) &&
+                        Number(episode_number) == Number(item.episode_number)
+                          ? "text-red-600"
+                          : ""
+                      }`}
+                    >
+                      Episode {item.episode_number}
+                    </h1>
+
+                    <p className="text-xs opacity-50 line-clamp-2">
+                      {item.overview}
                     </p>
-                  </Link>
-                </div>
+                  </div>
+                </Link>
               );
             })}
           </div>
         </div>
+        {/* Cast */}
+        <h1 className="text-2xl font-semibold mb-4 border-l-4 border-red-500 px-2">
+          Cast
+        </h1>
+        <div className="flex overflow-x-auto space-x-5 md:space-x-10 no-scrollbar">
+          {dataCast?.cast.map((cast) => (
+            <div
+              key={cast.id}
+              className="flex flex-col items-center justify-center flex-shrink-0"
+            >
+              {cast.profile_path ? (
+                <Image
+                  src={`https://image.tmdb.org/t/p/w500${cast.profile_path}`}
+                  width={100}
+                  height={100}
+                  alt={`${cast.name}`}
+                  className="w-28 h-28 object-cover object-center rounded-full"
+                />
+              ) : (
+                <div className="w-28 h-28 bg-primary rounded-full items-center justify-center flex">
+                  <User size={40} />
+                </div>
+              )}
+              <h1 className="font-semibold">{cast.name}</h1>
+              <p className="text-xs opacity-50">{cast.character}</p>
+            </div>
+          ))}
+        </div>
       </div>
-
       {/* Commentar */}
       <div className="flex flex-col w-full mt-20 px-10 h-auto items-center justify-center">
         <h1 className="font-bold opacity-80 italic text-2xl">COMMENTS</h1>

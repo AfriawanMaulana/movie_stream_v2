@@ -83,8 +83,6 @@ export default function MovieList({
 
   if (!data?.results?.length) return null;
 
-  /* ================= RENDER ================= */
-
   return (
     <div>
       {/* Header */}

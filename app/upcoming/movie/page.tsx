@@ -24,7 +24,7 @@ export default async function Page({
     <div>
       <title>Up Coming - TERFLIX</title>
       <section className="px-5 lg:px-14 py-20">
-        <Suspense fallback={<MovieSkeleton />}>
+        <Suspense fallback={<MovieSkeleton count={12} />}>
           <MovieList
             data={up_coming}
             category={query as string}

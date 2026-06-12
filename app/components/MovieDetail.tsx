@@ -4,14 +4,16 @@ import { supabase } from "@/lib/supabaseClient";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { UserCircle } from "lucide-react";
+import { Play, Star, User, UserCircle } from "lucide-react";
 import Link from "next/link";
+import MovieDetailSkeleton from "./MovieDetailSkeleton";
 
 interface DataType {
   id: number;
   title: string;
   original_title: string;
   original_language: string;
+  origin_country: string;
 
   genres: [
     {
@@ -19,31 +21,67 @@ interface DataType {
       name: string;
     }
   ];
+
+  belongs_to_collection: {
+    id: number;
+    name: string;
+    poster_path: string;
+    backdrop_path: string;
+  };
+
   poster_path: string;
+  backdrop_path: string;
   tagline: string;
   release_date: string;
   overview: string;
+  vote_average: number;
+  runtime: number;
+  status: string;
+}
+
+interface CastProps {
+  id: number;
+  cast: [
+    {
+      adult: boolean;
+      gender: number;
+      id: number;
+      known_for_department: string;
+      name: string;
+      original_name: string;
+      popularity: number;
+      profile_path: string;
+      cast_id: number;
+      character: string;
+      credit_id: string;
+      order: number;
+    }
+  ];
 }
 
 const servers = [
   {
     id: 1,
     name: "Server 1",
+    disabled: true,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
   },
   {
     id: 2,
     name: "Server 2",
+    disabled: false,
     endpoint: `https://vidsrc.ru/movie`,
   },
   {
     id: 3,
     name: "Server 3",
+    disabled: false,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/movie`,
   },
   {
     id: 4,
     name: "Server 4",
+    disabled: false,
     // endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
     endpoint: `https://vidsrc.wiki/embed/movie`,
   },
@@ -51,8 +89,10 @@ const servers = [
 
 export default function MovieDetail() {
   const movie_id = useSearchParams().get("id");
-  const [switchServer, setSwitchServer] = useState(1);
+  const [switchServer, setSwitchServer] = useState(2);
   const [data, setData] = useState<DataType | null>(null);
+  const [dataCast, setDataCast] = useState<CastProps | null>(null);
+  const [isWatch, setIsWatch] = useState(false);
   const [form, setForm] = useState({
     name: "",
     comment: "",
@@ -77,6 +117,11 @@ export default function MovieDetail() {
     axios
       .get(`/api/tmdb/movie/${movie_id}`)
       .then((res) => setData(res.data))
+      .catch((err) => console.error(err));
+
+    axios
+      .get(`/api/tmdb/movie/${movie_id}/credits`)
+      .then((res) => setDataCast(res.data))
       .catch((err) => console.error(err));
   }, [movie_id]);
 
@@ -122,6 +167,15 @@ export default function MovieDetail() {
       console.error(err);
     }
   };
+
+  const scrollToPlayer = () => {
+    setIsWatch(true);
+    const player = document.getElementById("player");
+    if (player) {
+      player.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const getComments = async () => {
     try {
       const { data, error } = await supabase
@@ -147,75 +201,150 @@ export default function MovieDetail() {
     getComments();
   });
 
+  if (!data) return <MovieDetailSkeleton />;
+
   return (
     <div className="py-20 flex flex-col space-y-10">
-      {/* Video frame */}
-      <div>
-        <iframe
-          loading="lazy"
-          src={`${stream_url}/${movie_id}?autoplay=true&colour=ff0000&backbutton=https://terflix.vercel.app&logo=https://terflix.vercel.app/favicon.png`}
-          title="Movie player"
-          allowFullScreen
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; allowFullScreen; gyroscope; picture-in-picture"
-          referrerPolicy="no-referrer"
-          className="flex w-full h-[315px] md:h-screen"
-          // sandbox={
-          //   switchServer === 1
-          //     ? "allow-scripts allow-same-origin allow-forms"
-          //     : undefined
-          // }
-        ></iframe>
-      </div>
-      <div className="px-5">
-        <div className=" mb-4">
-          <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
-            {servers.map((server) => (
-              <option
-                key={server.id}
-                value={server.id}
-                onClick={() => setSwitchServer(server.id)}
-                className="hover:bg-red-500"
-              >
-                {server.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex gap-5 border-b border-white/20 pb-4">
+      <div className="flex gap-5 pb-4">
+        {/* Movie Info */}
+        <div className="relative w-full md:h-[75vh] h-[80vh]">
           <Image
-            src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
-            width={130}
-            height={130}
+            src={`https://image.tmdb.org/t/p/original/${data?.backdrop_path}`}
+            fill
             alt={`${data?.title}`}
-            priority
             unoptimized
-            className="w-36 md:w-40 h-auto object-cover"
+            className="object-cover opacity-55"
           />
-          <div className="flex flex-col space-y-1">
-            <h1 className="text-2xl md:text-3xl">
-              {data?.original_language === "id"
-                ? data?.original_title
-                : data?.title}
-            </h1>
-            <p className="opacity-70 text-sm md:text-md">{data?.tagline}</p>
-            <p className="opacity-50 text-sm">{data?.release_date}</p>
-            <div className="flex flex-wrap gap-2">
-              {data?.genres.map((genre) => (
-                <Link
-                  key={genre.id}
-                  href={`/genre/${genre.name}`}
-                  className="bg-red-500 text-white rounded-md p-2"
+          <div className="absolute inset-0 gap-10 bg-gradient-to-t from-background to-transparent w-full h-full">
+            <div className="absolute bottom-4 left-4 flex flex-col md:flex-row gap-5">
+              <Image
+                src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
+                width={130}
+                height={130}
+                alt={`${data?.title}`}
+                unoptimized
+                className="w-36 md:w-52 h-auto object-cover rounded-xl"
+              />
+              <div className="flex flex-col space-y-4">
+                {/* Title */}
+                <h1 className="text-3xl md:text-5xl font-bold">
+                  {data?.original_language === "id"
+                    ? data?.original_title
+                    : data?.title}
+                </h1>
+                {/* Rating */}
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm flex items-center gap-2">
+                    <Star fill="gold" stroke="none" size={16} />
+                    <p className="opacity-50">
+                      {data?.vote_average.toFixed(1)} / 10
+                    </p>
+                  </span>
+                  <span className="text-xs">·</span>
+                  {data?.runtime && (
+                    <p className="opacity-50 text-sm">
+                      {Math.floor(data.runtime / 60)}h {data.runtime % 60}m
+                    </p>
+                  )}
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">{data?.origin_country}</p>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">{data?.release_date}</p>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">{data?.status}</p>
+                </div>
+                {/* Category */}
+                <div className="flex flex-wrap gap-2">
+                  {data?.genres.map((genre) => (
+                    <Link
+                      key={genre.id}
+                      href={`/genre/${genre.name}`}
+                      className="bg-red-500/20 border border-red-500 text-white/80 rounded-md py-1 px-2 text-sm"
+                    >
+                      {genre.name}
+                    </Link>
+                  ))}
+                </div>
+                {/* Synopsis */}
+                <p className="opacity-50 font-sans md:w-3/4">
+                  {data?.overview}
+                </p>
+                {/* Watch Button */}
+                <button
+                  onClick={scrollToPlayer}
+                  className="flex gap-2 items-center justify-center border border-red-500 bg-red-600 hover:bg-red-700 rounded-lg p-2 cursor-pointer w-36 font-semibold text-sm h-11 transition-all ease-in-out duration-300"
                 >
-                  {genre.name}
-                </Link>
-              ))}
+                  <Play size={16} fill="white" stroke="none" /> Watch Now
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div>
-          <h1 className="text-xl font-sans">Synopsis</h1>
-          <p className="opacity-50 font-sans">{data?.overview}</p>
+      </div>
+
+      <div className="px-5">
+        {/* Video frame */}
+        <div id="player">
+          {isWatch && (
+            <div className="my-10 space-y-4">
+              {/* Server Selector */}
+              <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
+                {servers.map((server) => (
+                  <option
+                    key={server.id}
+                    value={server.id}
+                    disabled={server.disabled}
+                    onClick={() => setSwitchServer(server.id)}
+                    className="hover:bg-red-500"
+                  >
+                    {server.name}
+                  </option>
+                ))}
+              </select>
+              <iframe
+                loading="lazy"
+                src={`${stream_url}/${movie_id}?autoplay=true&colour=ff0000&backbutton=https://terflix.vercel.app&logo=https://terflix.vercel.app/favicon.png`}
+                title="Movie player"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; allowFullScreen; gyroscope; picture-in-picture"
+                referrerPolicy="no-referrer"
+                className="flex w-full h-[315px] md:h-screen"
+                // sandbox={
+                //   switchServer === 1
+                //     ? "allow-scripts allow-same-origin allow-forms"
+                //     : undefined
+                // }
+              ></iframe>
+            </div>
+          )}
+        </div>
+        {/* Cast */}
+        <h1 className="text-2xl font-semibold mb-4 border-l-4 border-red-500 px-2">
+          Cast
+        </h1>
+        <div className="flex overflow-x-auto space-x-5 md:space-x-10 no-scrollbar">
+          {dataCast?.cast.map((cast) => (
+            <div
+              key={cast.id}
+              className="flex flex-col items-center justify-center flex-shrink-0"
+            >
+              {cast.profile_path ? (
+                <Image
+                  src={`https://image.tmdb.org/t/p/w500${cast.profile_path}`}
+                  width={100}
+                  height={100}
+                  alt={`${cast.name}`}
+                  className="w-28 h-28 object-cover object-center rounded-full"
+                />
+              ) : (
+                <div className="w-28 h-28 bg-primary rounded-full items-center justify-center flex">
+                  <User size={40} />
+                </div>
+              )}
+              <h1 className="font-semibold">{cast.name}</h1>
+              <p className="text-xs opacity-50">{cast.character}</p>
+            </div>
+          ))}
         </div>
       </div>
 

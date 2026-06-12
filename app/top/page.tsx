@@ -20,7 +20,7 @@ export default async function Page({
     <div>
       <title>Top Rated - TERFLIX</title>
       <section className="px-5 lg:px-14 py-20">
-        <Suspense fallback={<MovieSkeleton />}>
+        <Suspense fallback={<MovieSkeleton count={12} />}>
           <MovieList
             data={top_rated}
             category={query as string}

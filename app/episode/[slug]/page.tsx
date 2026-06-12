@@ -9,5 +9,5 @@ export default function Page() {
   const season_number = match && match[1];
   const episode_number = match && match[2];
 
-  return <TvDetail specific={`${season_number}/${episode_number}`} />;
+  return <TvDetail specific={`${season_number}/${episode_number}`} showVideo />;
 }
