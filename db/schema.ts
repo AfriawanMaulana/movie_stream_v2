@@ -31,3 +31,18 @@ export const watchlist = pgTable("watchlist", {
     .defaultNow()
     .notNull(),
 });
+
+export const comments = pgTable("comments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  user_id: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  username: text("username").notNull(),
+  movie_id: text("movie_id").notNull(),
+  title: text("title").notNull(),
+  category: categoryEnum("category").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

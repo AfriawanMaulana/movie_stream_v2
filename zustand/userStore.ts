@@ -32,5 +32,6 @@ export const useUserStore = create<UserStore>((set) => ({
   clearUser: () =>
     set({
       user: null,
+      loading: false,
     }),
 }));

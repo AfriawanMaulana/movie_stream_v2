@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronUp,
   LogIn,
+  LogOut,
   Search,
   User,
 } from "lucide-react";
@@ -12,6 +13,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "@/zustand/userStore";
+import { signOut } from "../actions/auth";
+import { toast } from "react-toastify";
 
 //* Navbar Dropdown Items
 const navLinks = [
@@ -129,6 +132,7 @@ const navLinks = [
 const logoPath = "/logo-2.png";
 
 export default function Navbar() {
+  const router = useRouter();
   const pathName = usePathname();
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
@@ -143,7 +147,7 @@ export default function Navbar() {
   const [openProfile, setOpenProfile] = useState(false);
   const [loadProfile, setLoadProfile] = useState(true);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { user, fetchUser } = useUserStore();
+  const { user, fetchUser, clearUser } = useUserStore();
 
   useEffect(() => {
     fetchUser();
@@ -187,6 +191,20 @@ export default function Navbar() {
   //   router.replace(`/search?query=${encodeURIComponent(searchValue)}`);
   //   setProcessing(true);
   // };
+
+  const handleSignOut = async () => {
+    const res = await signOut();
+
+    if (res.success) {
+      clearUser();
+      toast.success(res.message);
+      router.push("/");
+      router.refresh();
+    } else {
+      toast.error(res.message);
+    }
+    setOpenProfile(false);
+  };
 
   return (
     <div
@@ -403,7 +421,7 @@ export default function Navbar() {
                           />
                           <p className="font-semibold opacity-60">My List</p>
                         </Link>
-                        <div>
+                        <div className="space-y-2">
                           <Link
                             href="/profile"
                             onClick={() => setOpenProfile(false)}
@@ -416,6 +434,15 @@ export default function Navbar() {
                             <User size={16} />
                             <p className="font-semibold">My Profile</p>
                           </Link>
+                          <button
+                            onClick={() => {
+                              handleSignOut();
+                            }}
+                            className="flex gap-2 w-full items-center text-red-500 hover:bg-red-500/10 hover:border border-red-500 py-2 px-4 rounded-md cursor-pointer transition-all ease-in-out duration-300"
+                          >
+                            <LogOut size={16} />
+                            <p className="font-semibold">Logout</p>
+                          </button>
                         </div>
                       </div>
                     )}

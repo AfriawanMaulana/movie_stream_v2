@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/app/actions/auth";
+import { useUserStore } from "@/zustand/userStore";
 
 export default function Page() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function Page() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<any>({});
   const [showPassword, setShowPassword] = useState(false);
+  const { fetchUser } = useUserStore();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,6 +41,7 @@ export default function Page() {
       return;
     }
 
+    await fetchUser();
     router.push("/");
   }
 

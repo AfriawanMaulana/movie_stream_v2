@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { Film } from "lucide-react";
+import { Eye, EyeOff, Film } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,6 +12,8 @@ export default function Page() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fieldErrors, setFieldErrors] = useState<any>({});
   const [serverError, setServerError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
 
@@ -76,12 +78,14 @@ export default function Page() {
             </div>
           )}
           <div className="space-y-1">
-            <label>Email</label>
+            <label className="font-semibold text-primary-foreground/50 text-sm">
+              Email
+            </label>
 
             <input
               name="email"
               type="email"
-              className="w-full rounded-lg border p-3"
+              className="px-4 py-3 rounded-lg border border-primary-foreground/20 w-full bg-primary-foreground/5"
             />
 
             {fieldErrors.email && (
@@ -89,12 +93,14 @@ export default function Page() {
             )}
           </div>
           <div className="space-y-1">
-            <label>Username</label>
+            <label className="font-semibold text-primary-foreground/50 text-sm">
+              Username
+            </label>
 
             <input
               name="username"
               type="text"
-              className="w-full rounded-lg border p-3"
+              className="px-4 py-3 rounded-lg border border-primary-foreground/20 w-full bg-primary-foreground/5"
             />
 
             {fieldErrors.username && (
@@ -103,34 +109,66 @@ export default function Page() {
           </div>
           <div className="space-y-1">
             <div className="flex gap-2">
-              <h2 className="font-semibold text-primary-foreground/50 text-sm">
+              <label className="font-semibold text-primary-foreground/50 text-sm">
                 PASSWORD
-              </h2>
+              </label>
               <span className="text-sm text-red-500"></span>
             </div>
-            <input
-              name="password"
-              type="password"
-              required
-              className="px-4 py-3 rounded-lg border border-primary-foreground/20 w-full bg-primary-foreground/5"
-            />
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                className="px-4 py-3 rounded-lg border border-primary-foreground/20 w-full bg-primary-foreground/5"
+              />
+
+              {showPassword ? (
+                <EyeOff
+                  size={20}
+                  onClick={() => setShowPassword(false)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer opacity-50"
+                />
+              ) : (
+                <Eye
+                  size={20}
+                  onClick={() => setShowPassword(true)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer opacity-50"
+                />
+              )}
+            </div>
             {fieldErrors.password && (
               <p className="text-sm text-red-500">{fieldErrors.password[0]}</p>
             )}
           </div>
           <div className="space-y-1">
             <div className="flex gap-2">
-              <h2 className="font-semibold text-primary-foreground/50 text-sm">
+              <label className="font-semibold text-primary-foreground/50 text-sm">
                 CONFIRM PASSWORD
-              </h2>
+              </label>
               <span className="text-sm text-red-500"></span>
             </div>
-            <input
-              name="confirmPassword"
-              type="password"
-              required
-              className="px-4 py-3 rounded-lg border border-primary-foreground/20 w-full bg-primary-foreground/5"
-            />
+            <div className="relative">
+              <input
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                className="px-4 py-3 rounded-lg border border-primary-foreground/20 w-full bg-primary-foreground/5"
+              />
+
+              {showConfirmPassword ? (
+                <EyeOff
+                  size={20}
+                  onClick={() => setShowConfirmPassword(false)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer opacity-50"
+                />
+              ) : (
+                <Eye
+                  size={20}
+                  onClick={() => setShowConfirmPassword(true)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer opacity-50"
+                />
+              )}
+            </div>
             {fieldErrors.confirmPassword && (
               <p className="text-sm text-red-500">
                 {fieldErrors.confirmPassword[0]}

@@ -1,15 +1,16 @@
 "use client";
 import axios from "axios";
-import { createClient } from "@/lib/supabase/client";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { Bookmark, Play, Star, User, UserCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Bookmark, Play, Star, User } from "lucide-react";
 import Link from "next/link";
 import MovieDetailSkeleton from "./MovieDetailSkeleton";
 import { addToWatchlist, checkWatchlist } from "../actions/addToWatchlist";
-
-const supabase = createClient();
+import { toast } from "react-toastify";
+import { useUserStore } from "@/zustand/userStore";
+import { addComments, getComments } from "../actions/addComments";
+import { CommentType } from "@/types/commentType";
 
 interface DataType {
   id: number;
@@ -91,27 +92,24 @@ const servers = [
 ];
 
 export default function MovieDetail() {
+  const router = useRouter();
   const movie_id = useSearchParams().get("id");
+  const { user, fetchUser } = useUserStore();
   const [switchServer, setSwitchServer] = useState(2);
   const [data, setData] = useState<DataType | null>(null);
   const [dataCast, setDataCast] = useState<CastProps | null>(null);
   const [isWatch, setIsWatch] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [form, setForm] = useState({
-    name: "",
     comment: "",
   });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [msgLength, setMsgLength] = useState(1000);
-  const [comments, setComments] = useState<
-    Array<{
-      id: number;
-      movie_id: number;
-      username: string;
-      message: string;
-      created_at: string;
-    }>
-  >([]);
+  const [msgLength, setMsgLength] = useState(500);
+  const [comments, setComments] = useState<CommentType[]>([]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const stream_url = servers
     .filter((item) => item.id === switchServer)
@@ -133,22 +131,18 @@ export default function MovieDetail() {
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const input = e.target.value;
-    setMsgLength(1000 - input.length);
+    setMsgLength(500 - input.length);
     setForm({ ...form, comment: input });
 
-    if (input.length > 1000) {
+    if (input.length > 500) {
       setMsgLength(0);
-      setForm({ ...form, comment: input.slice(0, 1000) });
+      setForm({ ...form, comment: input.slice(0, 500) });
     }
 
     if (!textareaRef.current) return;
     textareaRef.current.style.height = "auto";
     textareaRef.current.style.height =
       Math.min(textareaRef.current.scrollHeight, 120) + "px";
-  };
-
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, name: e.target.value });
   };
 
   // Check watchlist
@@ -174,26 +168,30 @@ export default function MovieDetail() {
     if (result.success) {
       setIsSaved(!!result.isSaved);
     } else {
-      console.error(result.error);
+      router.push("/auth/login");
+      toast.error(result.error);
     }
   };
 
   const postComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name === "" || form.comment === "") return;
+    if (form.comment === "") return;
 
     try {
-      await supabase.from("comments").insert([
-        {
-          movie_id: Number(movie_id),
-          username: form.name,
-          message: form.comment,
-          type: "movie",
-        },
-      ]);
-      setForm({ name: "", comment: "" });
-      setMsgLength(1000);
-      getComments();
+      const res = await addComments({
+        movie_id: String(data?.id),
+        title: data?.title || data?.original_title || "",
+        message: form.comment,
+        category: "movie",
+      });
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      setForm({ comment: "" });
+      setMsgLength(500);
+      const updated = await getComments(String(data?.id));
+      setComments(updated);
     } catch (err) {
       console.error(err);
     }
@@ -207,30 +205,25 @@ export default function MovieDetail() {
     }
   };
 
-  const getComments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("comments")
-        .select("*")
-        .eq("movie_id", movie_id)
-        .eq("type", "movie")
-        .order("id", { ascending: false });
-      if (error) {
-        console.error("Supabase insert error:", error.message, error.details);
-      } else {
-        setComments(data || []);
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await getComments(String(data?.id));
+
+        setComments(res);
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    };
+    fetchComments();
+  }, [data?.id]);
 
   useEffect(() => {
     window.addEventListener("load", () => {
       window.scrollTo(0, 0);
     });
-    getComments();
-  });
+    getComments(String(data?.id));
+  }, [data?.id]);
 
   if (!data) return <MovieDetailSkeleton />;
 
@@ -396,14 +389,13 @@ export default function MovieDetail() {
           className="flex flex-col w-full md:w-1/2 h-auto border-b-2  border-white/20 p-4"
         >
           <div className="flex flex-col md:flex-row h-auto items-center gap-4">
-            <Image
-              src={"/profile.png"}
-              width={80}
-              height={80}
-              alt=""
-              priority
-              className="rounded-full w-28 md:w-auto h-auto object-cover"
-            />
+            <div className="w-32 h-32 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+              {user ? (
+                <h2 className="font-semibold text-4xl">{user?.username[0]}</h2>
+              ) : (
+                <User size={40} className="opacity-80" />
+              )}
+            </div>
             <div className="flex relative w-full">
               <p className="absolute top-1 right-3 text-xs">{msgLength}</p>
               <textarea
@@ -416,17 +408,8 @@ export default function MovieDetail() {
               />
             </div>
           </div>
-          <div className="flex flex-col md:flex-row justify-end gap-2 items-center">
-            <div className="flex items-center relative w-full md:w-1/2">
-              <UserCircle className="absolute top-2 left-1.5 text-slate-100/50" />
-              <input
-                type="text"
-                value={form.name ?? ""}
-                onChange={handleInput}
-                placeholder="Your Name"
-                className="w-full h-10 py-4 pl-10 pr-4 rounded-lg border border-red-500 outline-hidden placeholder:text-red-500"
-              />
-            </div>
+
+          <div className="flex justify-end">
             <button
               type="submit"
               className="cursor-pointer bg-red-500 w-full md:w-40 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 ease-in-out"
@@ -452,14 +435,15 @@ export default function MovieDetail() {
               className="flex gap-4 border border-red-500/50 p-4 rounded-lg"
             >
               <div className="flex-shrink-0">
-                <Image
-                  src="/profile.png"
-                  width={40}
-                  height={40}
-                  alt={`${comment.username}'s profile`}
-                  priority
-                  className="rounded-full object-cover"
-                />
+                <div className="w-12 h-12 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+                  {user ? (
+                    <h2 className="font-semibold text-xl">
+                      {user?.username[0]}
+                    </h2>
+                  ) : (
+                    <User size={16} className="opacity-80" />
+                  )}
+                </div>
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-2">
@@ -473,7 +457,7 @@ export default function MovieDetail() {
                       year: "numeric",
                       hour: "numeric",
                       minute: "numeric",
-                    }).format(new Date(comment.created_at))}
+                    }).format(new Date(comment.createdAt))}
                   </p>
                 </div>
                 <p className="break-words text-sm leading-relaxed">
