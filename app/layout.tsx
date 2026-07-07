@@ -3,8 +3,9 @@ import "./globals.css";
 import Footer from "./components/Footer";
 import { Analytics } from "@vercel/analytics/next";
 import Navbar from "./components/Navbar";
-import { Suspense } from "react";
+import { ToastContainer } from "react-toastify";
 import PWAUpdater from "./pwa-updater";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "TERFLIX - Nonton Film, Serial TV berbagai Subtitle",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <div className="min-h-screen">{children}</div>
         <Analytics />
         <Footer />
+        <ToastContainer position="bottom-right" autoClose={3000} theme="dark" />
       </body>
     </html>
   );

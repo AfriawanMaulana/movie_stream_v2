@@ -1,9 +1,17 @@
 "use client";
-import { Search } from "lucide-react";
+import {
+  Bookmark,
+  ChevronDown,
+  ChevronUp,
+  LogIn,
+  Search,
+  User,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useUserStore } from "@/zustand/userStore";
 
 //* Navbar Dropdown Items
 const navLinks = [
@@ -121,7 +129,7 @@ const navLinks = [
 const logoPath = "/logo-2.png";
 
 export default function Navbar() {
-  const router = useRouter();
+  const pathName = usePathname();
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
 
@@ -131,6 +139,16 @@ export default function Navbar() {
   const [searchValue, setSearchValue] = useState("");
   const [processing, setProcessing] = useState(false);
   const [mobileNav, setMobileNav] = useState(false);
+
+  const [openProfile, setOpenProfile] = useState(false);
+  const [loadProfile, setLoadProfile] = useState(true);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const { user, fetchUser } = useUserStore();
+
+  useEffect(() => {
+    fetchUser();
+    setLoadProfile(false);
+  }, [fetchUser]);
 
   useEffect(() => {
     if (query) setSearchValue(query);
@@ -149,12 +167,26 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, query]);
 
-  const handleSearch = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (!searchValue) return;
-    router.replace(`/search?query=${encodeURIComponent(searchValue)}`);
-    setProcessing(true);
-  };
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setOpenProfile(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // const handleSearch = (e: React.SyntheticEvent) => {
+  //   e.preventDefault();
+  //   if (!searchValue) return;
+  //   router.replace(`/search?query=${encodeURIComponent(searchValue)}`);
+  //   setProcessing(true);
+  // };
 
   return (
     <div
@@ -175,7 +207,7 @@ export default function Navbar() {
     `}
       >
         {/* Mobile hamburger */}
-        <button
+        {/* <button
           onClick={() => setMobileNav(!mobileNav)}
           className="md:hidden cursor-pointer "
         >
@@ -210,7 +242,7 @@ export default function Navbar() {
               />
             </svg>
           )}
-        </button>
+        </button> */}
 
         {/* Logo */}
         <Link href="/">
@@ -277,7 +309,123 @@ export default function Navbar() {
           ))}
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="flex items-center relative">
+          <Link
+            href="/search"
+            className="hidden md:flex items-center gap-2 text-white hover:text-red-500"
+          >
+            <Search />
+          </Link>
+
+          {/* Account */}
+          <div ref={profileRef} className="relative">
+            {loadProfile ? (
+              <div className="flex gap-2 items-center border border-secondary/20 p-1.5 rounded-full w-36">
+                <div className="w-8 h-8 rounded-full bg-secondary/20 animate-pulse" />
+                <div className="h-3 w-18 rounded bg-secondary/20 animate-pulse" />
+                <ChevronDown size={14} className="opacity-80 animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setOpenProfile(!openProfile)}
+                  className={`${
+                    openProfile ? "bg-secondary/15" : ""
+                  } flex gap-2 items-center justify-between border border-secondary/20 p-1.5 rounded-full cursor-pointer hover:bg-secondary/15 transition-all ease-in-out duration-300`}
+                >
+                  <div className="w-8 h-8 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+                    {user ? (
+                      <h2 className="font-semibold text-base">
+                        {user?.username[0]}
+                      </h2>
+                    ) : (
+                      <User size={16} className="opacity-80" />
+                    )}
+                  </div>
+                  <p className="font-semibold">{user?.username || "Account"}</p>
+                  <ChevronDown size={14} className="opacity-80" />
+                </button>
+                {/* Account Dropdown */}
+                {openProfile && (
+                  <div className="bg-primary/90 absolute top-20 right-4 p-4 rounded-2xl w-96 h-auto space-y-3">
+                    <Link
+                      href={user ? "/profile" : "/auth/login"}
+                      onClick={() => setOpenProfile(false)}
+                      className="flex gap-4 items-center bg-secondary/5 p-2 rounded-xl"
+                    >
+                      <div className="w-12 h-12 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+                        {user ? (
+                          <h2 className="font-semibold text-base">
+                            {user?.username[0]}
+                          </h2>
+                        ) : (
+                          <User size={16} className="opacity-80" />
+                        )}
+                      </div>
+                      <div>
+                        <h1 className="font-semibold">
+                          {user?.username || "Account"}
+                        </h1>
+                        <p className="text-sm opacity-50">
+                          {user?.email || "Sign in to save your list."}
+                        </p>
+                      </div>
+                    </Link>
+                    {!user ? (
+                      <div className="flex gap-4 w-full justify-between">
+                        <Link
+                          href={"/auth/login"}
+                          className="inline-flex gap-2 items-center justify-center hover:bg-secondary/5 py-3 rounded-lg border border-secondary/20 font-semibold opacity-70 w-full transition-all ease-in-out duration-300"
+                        >
+                          <LogIn size={16} /> Sign in
+                        </Link>
+                        <Link
+                          href={"/auth/register"}
+                          className="inline-flex gap-2 items-center justify-center bg-secondary/5 hover:bg-secondary/10 hover:border-red-500/50 py-3 rounded-lg border border-secondary/20 font-semibold opacity-70 w-full text-red-500 transition-all ease-in-out duration-300"
+                        >
+                          <User size={16} /> Sign up
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Link
+                          href="/profile/watchlist"
+                          onClick={() => setOpenProfile(false)}
+                          className={`${
+                            pathName === "/profile/watchlist"
+                              ? "bg-secondary/5"
+                              : ""
+                          } flex gap-2 items-center border border-secondary/20 hover:bg-secondary/5 p-2 rounded-md justify-center cursor-pointer`}
+                        >
+                          <Bookmark
+                            size={16}
+                            color="yellow"
+                            className="opacity-60"
+                          />
+                          <p className="font-semibold opacity-60">My List</p>
+                        </Link>
+                        <div>
+                          <Link
+                            href="/profile"
+                            onClick={() => setOpenProfile(false)}
+                            className={`${
+                              pathName === "/profile"
+                                ? "bg-secondary/5 text-red-500"
+                                : "text-secondary/50"
+                            } flex gap-2 items-center hover:text-red-500 hover:bg-secondary/5 py-2 px-4 rounded-md cursor-pointer transition-all ease-in-out duration-300`}
+                          >
+                            <User size={16} />
+                            <p className="font-semibold">My Profile</p>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* <form onSubmit={handleSearch} className="flex items-center relative">
             <input
               type="text"
               placeholder="Search..."
@@ -323,7 +471,7 @@ export default function Navbar() {
                 </svg>
               )}
             </button>
-          </form>
+          </form> */}
         </div>
 
         {/* Mobile nav drawer */}
@@ -331,8 +479,76 @@ export default function Navbar() {
           <div
             className={`${
               scrolled ? "p-0" : "px-6"
-            } flex flex-col absolute top-full left-0 w-full md:hidden mt-2`}
+            } flex flex-col absolute top-full left-0 w-full md:hidden mt-2 gap-1`}
           >
+            <div className="bg-primary/90 p-4 rounded-2xl w-full h-auto space-y-3">
+              <Link
+                href={user ? "/profile" : "/auth/login"}
+                onClick={() => setOpenProfile(false)}
+                className="flex gap-4 items-center rounded-xl"
+              >
+                <div className="w-12 h-12 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+                  {user ? (
+                    <h2 className="font-semibold text-base">
+                      {user?.username[0]}
+                    </h2>
+                  ) : (
+                    <User size={16} className="opacity-80" />
+                  )}
+                </div>
+                <div>
+                  <h1 className="font-semibold">
+                    {user?.username || "Account"}
+                  </h1>
+                  <p className="text-sm opacity-50">
+                    {user?.email || "Sign in to save your list."}
+                  </p>
+                </div>
+              </Link>
+              {!user ? (
+                <div className="flex gap-4 w-full justify-between">
+                  <Link
+                    href={"/auth/login"}
+                    className="inline-flex gap-2 items-center justify-center hover:bg-secondary/5 py-3 rounded-lg border border-secondary/20 font-semibold opacity-70 w-full transition-all ease-in-out duration-300"
+                  >
+                    <LogIn size={16} /> Sign in
+                  </Link>
+                  <Link
+                    href={"/auth/register"}
+                    className="inline-flex gap-2 items-center justify-center bg-secondary/5 hover:bg-secondary/10 hover:border-red-500/50 py-3 rounded-lg border border-secondary/20 font-semibold opacity-70 w-full text-red-500 transition-all ease-in-out duration-300"
+                  >
+                    <User size={16} /> Sign up
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Link
+                    href="/profile/watchlist"
+                    onClick={() => setOpenProfile(false)}
+                    className={`${
+                      pathName === "/profile/watchlist" ? "bg-secondary/5" : ""
+                    } flex gap-2 items-center border border-secondary/20 hover:bg-secondary/5 p-2 rounded-md justify-center cursor-pointer`}
+                  >
+                    <Bookmark size={16} color="yellow" className="opacity-60" />
+                    <p className="font-semibold opacity-60">My List</p>
+                  </Link>
+                  <div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setOpenProfile(false)}
+                      className={`${
+                        pathName === "/profile"
+                          ? "bg-secondary/5 text-red-500"
+                          : "text-secondary/50"
+                      } flex gap-2 items-center hover:text-red-500 hover:bg-secondary/5 py-2 px-4 rounded-md cursor-pointer transition-all ease-in-out duration-300`}
+                    >
+                      <User size={16} />
+                      <p className="font-semibold">My Profile</p>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="bg-background rounded-2xl">
               {navLinks.map((item, index) => (
                 <div
@@ -378,9 +594,32 @@ export default function Navbar() {
           </div>
         )}
 
-        <Link href={"/search"} className="md:hidden">
-          <Search />
-        </Link>
+        <div className="md:hidden flex gap-4 items-center">
+          <Link href={"/search"} className="md:hidden">
+            <Search />
+          </Link>
+          <button
+            onClick={() => setMobileNav(!mobileNav)}
+            className="md:hidden flex gap-2 items-center justify-between cursor-pointer transition-all ease-in-out duration-300"
+          >
+            <div className="p-0.5 bg-secondary/20 rounded-full">
+              <div className="w-8 h-8 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+                {user ? (
+                  <h2 className="font-semibold text-base">
+                    {user?.username[0]}
+                  </h2>
+                ) : (
+                  <User size={16} className="opacity-80" />
+                )}
+              </div>
+            </div>
+            {mobileNav ? (
+              <ChevronUp size={14} className="opacity-80" />
+            ) : (
+              <ChevronDown size={14} className="opacity-80" />
+            )}
+          </button>
+        </div>
       </nav>
     </div>
   );

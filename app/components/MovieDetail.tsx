@@ -1,12 +1,15 @@
 "use client";
 import axios from "axios";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { Play, Star, User, UserCircle } from "lucide-react";
+import { Bookmark, Play, Star, User, UserCircle } from "lucide-react";
 import Link from "next/link";
 import MovieDetailSkeleton from "./MovieDetailSkeleton";
+import { addToWatchlist, checkWatchlist } from "../actions/addToWatchlist";
+
+const supabase = createClient();
 
 interface DataType {
   id: number;
@@ -93,6 +96,7 @@ export default function MovieDetail() {
   const [data, setData] = useState<DataType | null>(null);
   const [dataCast, setDataCast] = useState<CastProps | null>(null);
   const [isWatch, setIsWatch] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [form, setForm] = useState({
     name: "",
     comment: "",
@@ -145,6 +149,33 @@ export default function MovieDetail() {
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, name: e.target.value });
+  };
+
+  // Check watchlist
+  useEffect(() => {
+    async function loadWatchlist() {
+      const saved = await checkWatchlist(String(data?.id));
+      setIsSaved(saved);
+    }
+
+    if (data?.id) {
+      loadWatchlist();
+    }
+  }, [data?.id]);
+
+  const handleAddToWatchlist = async () => {
+    const result = await addToWatchlist({
+      movie_id: String(data?.id),
+      poster_path: data?.poster_path ?? "",
+      title: data?.title || data?.original_title || "",
+      category: "movie",
+    });
+
+    if (result.success) {
+      setIsSaved(!!result.isSaved);
+    } else {
+      console.error(result.error);
+    }
   };
 
   const postComment = async (e: React.FormEvent) => {
@@ -270,12 +301,20 @@ export default function MovieDetail() {
                   {data?.overview}
                 </p>
                 {/* Watch Button */}
-                <button
-                  onClick={scrollToPlayer}
-                  className="flex gap-2 items-center justify-center border border-red-500 bg-red-600 hover:bg-red-700 rounded-lg p-2 cursor-pointer w-36 font-semibold text-sm h-11 transition-all ease-in-out duration-300"
-                >
-                  <Play size={16} fill="white" stroke="none" /> Watch Now
-                </button>
+                <div className="flex gap-4 items-center">
+                  <button
+                    onClick={scrollToPlayer}
+                    className="flex gap-2 items-center justify-center border border-red-500 bg-red-600 hover:bg-red-700 rounded-lg p-2 cursor-pointer w-36 font-semibold text-sm h-11 transition-all ease-in-out duration-300"
+                  >
+                    <Play size={16} fill="white" stroke="none" /> Watch Now
+                  </button>
+                  <button
+                    onClick={handleAddToWatchlist}
+                    className="text-red-500 cursor-pointer"
+                  >
+                    <Bookmark fill={isSaved ? "red" : "none"} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

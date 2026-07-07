@@ -1,5 +1,7 @@
 // components/MovieDetailSkeleton.tsx
 
+import { Bookmark } from "lucide-react";
+
 export default function MovieDetailSkeleton() {
   return (
     <div className="py-20 flex flex-col space-y-10">
@@ -42,7 +44,10 @@ export default function MovieDetailSkeleton() {
               </div>
 
               {/* Watch button */}
-              <div className="h-11 w-36 rounded-lg bg-white/10 animate-pulse" />
+              <div className="flex items-center gap-4">
+                <div className="h-11 w-36 rounded-lg bg-white/10 animate-pulse" />
+                <Bookmark className=" text-white/10 animate-pulse" />
+              </div>
             </div>
           </div>
         </div>

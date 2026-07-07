@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { Play, Star, User, UserCircle } from "lucide-react";
 import TVDetailSkeleton from "./TVDetailSkeleton";
 
@@ -117,6 +117,8 @@ export default function TvDetail({
   const match = getParams?.match(/season-(\d+)-episode-(\d+)/);
   const season_number = match && match[1];
   const episode_number = match && match[2];
+
+  const supabase = createClient();
 
   const [form, setForm] = useState({
     name: "",
