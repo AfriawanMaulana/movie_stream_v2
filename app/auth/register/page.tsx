@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { Eye, EyeOff, Film } from "lucide-react";
+import { Eye, EyeOff, Film, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,12 +14,13 @@ export default function Page() {
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
+    setLoading(true);
     setFieldErrors({});
     setServerError("");
 
@@ -41,9 +42,11 @@ export default function Page() {
         setServerError(result.serverError);
       }
 
+      setLoading(false);
       return;
     }
 
+    setLoading(false);
     router.push("/auth/login");
   }
   return (
@@ -89,7 +92,7 @@ export default function Page() {
             />
 
             {fieldErrors.email && (
-              <p className="text-sm text-red-500">{fieldErrors.email[0]}</p>
+              <p className="text-sm text-red-500">{fieldErrors.email}</p>
             )}
           </div>
           <div className="space-y-1">
@@ -176,8 +179,12 @@ export default function Page() {
             )}
           </div>
 
-          <button className="p-4 rounded-lg w-full bg-red-600 hover:bg-red-700 transition-all duration-300 ease-in-out cursor-pointer">
-            Create Account
+          <button className="p-4 rounded-lg w-full flex justify-center items-center bg-red-600 hover:bg-red-700 transition-all duration-300 ease-in-out cursor-pointer">
+            {loading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              "Create Account"
+            )}
           </button>
           <p className="flex items-center gap-2 w-full justify-center">
             <span className="opacity-80 text-sm font-light">

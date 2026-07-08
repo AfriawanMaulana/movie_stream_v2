@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { registerSchema, loginSchema } from "@/db/validation";
 import { createClient } from "@/lib/supabase/server";
+import { eq } from "drizzle-orm";
 
 export async function register(data: {
   username: string;
@@ -23,6 +24,19 @@ export async function register(data: {
 
   const { username, email, password } = validation.data;
 
+  const existingUser = await db.query.users.findFirst({
+    where: eq(users.email, email),
+  });
+
+  if (existingUser) {
+    return {
+      success: false,
+      fieldErrors: {
+        email: "Email already exists.",
+      },
+    };
+  }
+
   const { data: authData, error } = await supabase.auth.signUp({
     email,
     password,
@@ -36,28 +50,14 @@ export async function register(data: {
   if (error) {
     return {
       success: false,
-      serverError: error.message,
+      serverError: error.message || "Failed to create user",
     };
   }
 
   if (!authData.user) {
     return {
       success: false,
-      serverError: "User gagal dibuat.",
-    };
-  }
-
-  try {
-    await db.insert(users).values({
-      id: authData.user.id,
-      username,
-    });
-  } catch (err) {
-    console.error(err);
-
-    return {
-      success: false,
-      serverError: "Gagal menyimpan data user.",
+      serverError: "Failed to create user",
     };
   }
 

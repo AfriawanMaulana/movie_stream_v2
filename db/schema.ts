@@ -1,5 +1,4 @@
 import {
-  index,
   pgTable,
   uuid,
   text,
@@ -11,6 +10,7 @@ import {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
   username: varchar("username", { length: 16 }).notNull(),
+  email: text("email").notNull().unique(),
   avatar: text("avatar"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

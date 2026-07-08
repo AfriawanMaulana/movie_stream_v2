@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { Eye, EyeOff, Film } from "lucide-react";
+import { Eye, EyeOff, Film, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -14,11 +14,12 @@ export default function Page() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<any>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { fetchUser } = useUserStore();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
+    setLoading(true);
     setFieldErrors({});
     setError("");
 
@@ -38,10 +39,12 @@ export default function Page() {
         setError(result.error);
       }
 
+      setLoading(false);
       return;
     }
 
     await fetchUser();
+    setLoading(false);
     router.push("/");
   }
 
@@ -121,8 +124,16 @@ export default function Page() {
               <p className="text-sm text-red-500">{fieldErrors.password[0]}</p>
             )}
           </div>
-          <button className="p-4 rounded-lg w-full bg-red-600 hover:bg-red-700 transition-all duration-300 ease-in-out cursor-pointer">
-            Sign In
+          <button
+            type="submit"
+            disabled={loading}
+            className="p-4 rounded-lg w-full flex justify-center items-center bg-red-600 hover:bg-red-700 transition-all duration-300 ease-in-out cursor-pointer"
+          >
+            {loading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              "Sign In"
+            )}
           </button>
           <p className="flex items-center gap-2 w-full justify-center">
             <span className="opacity-80 text-sm font-light">

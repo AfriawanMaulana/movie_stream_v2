@@ -43,6 +43,13 @@
       "when": 1783403490781,
       "tag": "0005_graceful_nocturne",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783483202058,
+      "tag": "0006_fearless_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }
