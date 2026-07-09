@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const movies = await res.json();
-  const results = (await movies.results.slice(0, 20)) || [];
+  const results = (await movies.results) ?? [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const movieUrls = results.map((movie: any) => ({
     url: `${baseUrl}/movie/${movie.id}`,
