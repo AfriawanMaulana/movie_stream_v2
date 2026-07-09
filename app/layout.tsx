@@ -16,6 +16,18 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.png",
   },
+  keywords: [
+    "movies",
+    "tv shows",
+    "watchlist",
+    "tmdb",
+    "terflix",
+    "streaming",
+    "stream film",
+    "movie stream",
+    "nonton film",
+    "nonton film gratis",
+  ],
 };
 
 export default function RootLayout({
