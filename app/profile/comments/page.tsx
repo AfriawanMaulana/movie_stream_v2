@@ -95,7 +95,7 @@ export default function Page() {
               key={item.id}
               href={`/${item.category}/${slugify(item.title)}?id=${
                 item.movie_id
-              }`}
+              }#comment-${item.id}`}
               className="bg-secondary/2 p-4 rounded-2xl space-y-2 w-full flex justify-between hover:text-red-600 hover:bg-secondary/5 transition-all ease-in-out duration-300"
             >
               <div>

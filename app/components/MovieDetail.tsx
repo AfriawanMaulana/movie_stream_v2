@@ -91,12 +91,16 @@ const servers = [
   },
 ];
 
-export default function MovieDetail() {
+type Props = {
+  movie: DataType;
+};
+
+export default function MovieDetail({ movie }: Props) {
   const router = useRouter();
   const movie_id = useSearchParams().get("id");
   const { user, fetchUser } = useUserStore();
   const [switchServer, setSwitchServer] = useState(2);
-  const [data, setData] = useState<DataType | null>(null);
+  const data = movie;
   const [dataCast, setDataCast] = useState<CastProps | null>(null);
   const [isWatch, setIsWatch] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -116,11 +120,6 @@ export default function MovieDetail() {
     .map((e) => e.endpoint);
 
   useEffect(() => {
-    axios
-      .get(`/api/tmdb/movie/${movie_id}`)
-      .then((res) => setData(res.data))
-      .catch((err) => console.error(err));
-
     axios
       .get(`/api/tmdb/movie/${movie_id}/credits`)
       .then((res) => setDataCast(res.data))
@@ -148,20 +147,20 @@ export default function MovieDetail() {
   // Check watchlist
   useEffect(() => {
     async function loadWatchlist() {
-      const saved = await checkWatchlist(String(data?.id));
+      const saved = await checkWatchlist(String(data.id));
       setIsSaved(saved);
     }
 
-    if (data?.id) {
+    if (data.id) {
       loadWatchlist();
     }
-  }, [data?.id]);
+  }, [data.id]);
 
   const handleAddToWatchlist = async () => {
     const result = await addToWatchlist({
-      movie_id: String(data?.id),
-      poster_path: data?.poster_path ?? "",
-      title: data?.title || data?.original_title || "",
+      movie_id: String(data.id),
+      poster_path: data.poster_path ?? "",
+      title: data.title || data.original_title || "",
       category: "movie",
     });
 
@@ -179,8 +178,8 @@ export default function MovieDetail() {
 
     try {
       const res = await addComments({
-        movie_id: String(data?.id),
-        title: data?.title || data?.original_title || "",
+        movie_id: String(data.id),
+        title: data.title || data.original_title || "",
         message: form.comment,
         category: "movie",
       });
@@ -190,7 +189,7 @@ export default function MovieDetail() {
       }
       setForm({ comment: "" });
       setMsgLength(500);
-      const updated = await getComments(String(data?.id));
+      const updated = await getComments(String(data.id));
       setComments(updated);
     } catch (err) {
       console.error(err);
@@ -208,7 +207,7 @@ export default function MovieDetail() {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const res = await getComments(String(data?.id));
+        const res = await getComments(String(data.id));
 
         setComments(res);
       } catch (err) {
@@ -216,14 +215,23 @@ export default function MovieDetail() {
       }
     };
     fetchComments();
-  }, [data?.id]);
+  }, [data.id]);
+
+  useEffect(() => {
+    if (!comments.length) return;
+
+    const id = window.location.hash.replace("#", "");
+
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [comments]);
 
   useEffect(() => {
     window.addEventListener("load", () => {
-      window.scrollTo(0, 0);
+      if (!window.location.hash) window.scrollTo(0, 0);
     });
-    getComments(String(data?.id));
-  }, [data?.id]);
+  }, []);
 
   if (!data) return <MovieDetailSkeleton />;
 
@@ -233,53 +241,53 @@ export default function MovieDetail() {
         {/* Movie Info */}
         <div className="relative w-full md:h-[75vh] h-[80vh]">
           <Image
-            src={`https://image.tmdb.org/t/p/original/${data?.backdrop_path}`}
+            src={`https://image.tmdb.org/t/p/original/${data.backdrop_path}`}
             fill
-            alt={`${data?.title}`}
+            alt={`${data.title}`}
             unoptimized
             className="object-cover opacity-55"
           />
           <div className="absolute inset-0 gap-10 bg-gradient-to-t from-background to-transparent w-full h-full">
             <div className="absolute bottom-4 left-4 flex flex-col md:flex-row gap-5">
               <Image
-                src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
+                src={`https://image.tmdb.org/t/p/w500${data.poster_path}`}
                 width={130}
                 height={130}
-                alt={`${data?.title}`}
+                alt={`${data.title}`}
                 unoptimized
                 className="w-36 md:w-52 h-auto object-cover rounded-xl"
               />
               <div className="flex flex-col space-y-4">
                 {/* Title */}
                 <h1 className="text-3xl md:text-5xl font-bold">
-                  {data?.original_language === "id"
-                    ? data?.original_title
-                    : data?.title}
+                  {data.original_language === "id"
+                    ? data.original_title
+                    : data.title}
                 </h1>
                 {/* Rating */}
                 <div className="flex gap-2 items-center">
                   <span className="text-sm flex items-center gap-2">
                     <Star fill="gold" stroke="none" size={16} />
                     <p className="opacity-50">
-                      {data?.vote_average.toFixed(1)} / 10
+                      {data.vote_average.toFixed(1)} / 10
                     </p>
                   </span>
                   <span className="text-xs">·</span>
-                  {data?.runtime && (
+                  {data.runtime && (
                     <p className="opacity-50 text-sm">
                       {Math.floor(data.runtime / 60)}h {data.runtime % 60}m
                     </p>
                   )}
                   <span className="text-xs">·</span>
-                  <p className="opacity-50 text-sm">{data?.origin_country}</p>
+                  <p className="opacity-50 text-sm">{data.origin_country}</p>
                   <span className="text-xs">·</span>
-                  <p className="opacity-50 text-sm">{data?.release_date}</p>
+                  <p className="opacity-50 text-sm">{data.release_date}</p>
                   <span className="text-xs">·</span>
-                  <p className="opacity-50 text-sm">{data?.status}</p>
+                  <p className="opacity-50 text-sm">{data.status}</p>
                 </div>
                 {/* Category */}
                 <div className="flex flex-wrap gap-2">
-                  {data?.genres.map((genre) => (
+                  {data.genres.map((genre) => (
                     <Link
                       key={genre.id}
                       href={`/genre/${genre.name}`}
@@ -290,9 +298,7 @@ export default function MovieDetail() {
                   ))}
                 </div>
                 {/* Synopsis */}
-                <p className="opacity-50 font-sans md:w-3/4">
-                  {data?.overview}
-                </p>
+                <p className="opacity-50 font-sans md:w-3/4">{data.overview}</p>
                 {/* Watch Button */}
                 <div className="flex gap-4 items-center">
                   <button
@@ -432,6 +438,7 @@ export default function MovieDetail() {
           {comments.map((comment) => [
             <div
               key={comment.id}
+              id={`comment-${comment.id}`}
               className="flex gap-4 border border-red-500/50 p-4 rounded-lg"
             >
               <div className="flex-shrink-0">

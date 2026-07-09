@@ -28,6 +28,21 @@ export const metadata: Metadata = {
     "nonton film",
     "nonton film gratis",
   ],
+  openGraph: {
+    title: "TERFLIX - Nonton Film, Serial TV berbagai Subtitle",
+    description:
+      "Platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
+    url: "https://terflix.web.id",
+    siteName: "TERFLIX",
+    type: "website",
+    images: [
+      {
+        url: "/icon-512x512.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { Play, Star, User, UserCircle } from "lucide-react";
+import { Play, Star, User } from "lucide-react";
 import TVDetailSkeleton from "./TVDetailSkeleton";
+import { addComments, getComments } from "../actions/addComments";
+import { toast } from "react-toastify";
+import { CommentType } from "@/types/commentType";
+import { useUserStore } from "@/zustand/userStore";
 
 interface DataType {
   id: number;
@@ -99,14 +102,16 @@ const servers = [
 ];
 
 export default function TvDetail({
+  tv,
   specific,
   showVideo,
 }: {
+  tv: DataType;
   specific?: string;
   showVideo?: boolean;
 }) {
   const movie_id = useSearchParams().get("id");
-  const [data, setData] = useState<DataType | null>(null);
+  const { user } = useUserStore();
   const [dataEpisode, setDataEpisode] = useState<EpisodeType | null>(null);
   const [dataCast, setDataCast] = useState<CastProps | null>(null);
   const [isWatch, setIsWatch] = useState(showVideo || false);
@@ -118,23 +123,13 @@ export default function TvDetail({
   const season_number = match && match[1];
   const episode_number = match && match[2];
 
-  const supabase = createClient();
-
   const [form, setForm] = useState({
-    name: "",
     comment: "",
   });
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [msgLength, setMsgLength] = useState(1000);
-  const [comments, setComments] = useState<
-    Array<{
-      id: number;
-      movie_id: number;
-      username: string;
-      message: string;
-      created_at: string;
-    }>
-  >([]);
+  const [msgLength, setMsgLength] = useState(500);
+  const [comments, setComments] = useState<CommentType[]>([]);
 
   // const stream_url = process.env.NEXT_PUBLIC_VIDSRC_API + "/tv";
   const stream_url = servers
@@ -142,12 +137,6 @@ export default function TvDetail({
     .map((e) => e.endpoint);
 
   useEffect(() => {
-    // API TV Detail
-    axios
-      .get(`/api/tmdb/tv/${movie_id}`)
-      .then((res) => setData(res.data))
-      .catch((err) => console.error(err));
-
     // API TV Episode by Season
     axios
       .get(`/api/tmdb/tv/${movie_id}/season/${season}`)
@@ -173,12 +162,12 @@ export default function TvDetail({
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => {
     const input = e.target.value;
-    setMsgLength(1000 - input.length);
+    setMsgLength(500 - input.length);
     setForm({ ...form, comment: input });
 
-    if (input.length > 1000) {
+    if (input.length > 500) {
       setMsgLength(0);
-      setForm({ ...form, comment: input.slice(0, 1000) });
+      setForm({ ...form, comment: input.slice(0, 500) });
     }
 
     if (!textareaRef.current) return;
@@ -186,6 +175,43 @@ export default function TvDetail({
     textareaRef.current.style.height =
       Math.min(textareaRef.current.scrollHeight, 120) + "px";
   };
+
+  const postComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.comment === "") return;
+
+    try {
+      const res = await addComments({
+        movie_id: String(tv.id),
+        title: tv.name || "",
+        message: form.comment,
+        category: "tv",
+      });
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      setForm({ comment: "" });
+      setMsgLength(500);
+      const updated = await getComments(String(tv.id));
+      setComments(updated);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await getComments(String(tv.id));
+
+        setComments(res);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchComments();
+  }, [tv.id]);
 
   const scrollToPlayer = () => {
     setIsWatch(true);
@@ -196,54 +222,23 @@ export default function TvDetail({
     }
   };
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, name: e.target.value });
-  };
+  useEffect(() => {
+    if (!comments.length) return;
 
-  const postComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.name === "" || form.comment === "") return;
+    const id = window.location.hash.replace("#", "");
 
-    try {
-      await supabase.from("comments").insert([
-        {
-          movie_id: Number(movie_id),
-          username: form.name,
-          message: form.comment,
-          type: "tv",
-        },
-      ]);
-      setForm({ name: "", comment: "" });
-      setMsgLength(1000);
-      getComments();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const getComments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("comments")
-        .select("*")
-        .eq("movie_id", movie_id)
-        .eq("type", "tv")
-        .order("id", { ascending: false });
-      if (error) {
-        console.error("Supabase insert error:", error.message, error.details);
-      } else {
-        setComments(data || []);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    document.getElementById(id)?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [comments]);
 
   useEffect(() => {
-    getComments();
-  });
+    window.addEventListener("load", () => {
+      if (!window.location.hash) window.scrollTo(0, 0);
+    });
+  }, []);
 
-  if (!data) return <TVDetailSkeleton />;
+  if (!tv) return <TVDetailSkeleton />;
 
   return (
     <div className="py-20 flex flex-col space-y-10">
@@ -251,57 +246,51 @@ export default function TvDetail({
         {/* Movie Info */}
         <div className="relative w-full md:h-[75vh] h-[80vh]">
           <Image
-            src={`https://image.tmdb.org/t/p/original/${data?.backdrop_path}`}
+            src={`https://image.tmdb.org/t/p/original/${tv.backdrop_path}`}
             fill
-            alt={`${data?.name}`}
+            alt={`${tv.name}`}
             unoptimized
             className="object-cover opacity-55"
           />
           <div className="absolute inset-0 gap-10 bg-gradient-to-t from-background to-transparent w-full h-full">
             <div className="absolute bottom-4 left-4 flex flex-col md:flex-row gap-5">
               <Image
-                src={`https://image.tmdb.org/t/p/w500${data?.poster_path}`}
+                src={`https://image.tmdb.org/t/p/w500${tv.poster_path}`}
                 width={130}
                 height={130}
-                alt={`${data?.name}`}
+                alt={`${tv.name}`}
                 unoptimized
                 className="w-36 md:w-52 h-auto object-cover rounded-xl"
               />
               <div className="flex flex-col space-y-4">
                 {/* Title */}
                 <h1 className="text-3xl md:text-5xl font-bold">
-                  {data?.original_language === "id"
-                    ? data?.original_name
-                    : data?.name}
+                  {tv.original_language === "id" ? tv.original_name : tv.name}
                 </h1>
                 {/* Rating */}
                 <div className="flex gap-2 items-center">
                   <span className="text-sm flex items-center gap-2">
                     <Star fill="gold" stroke="none" size={16} />
                     <p className="opacity-50">
-                      {data?.vote_average.toFixed(1)} / 10
+                      {tv.vote_average.toFixed(1)} / 10
                     </p>
                   </span>
                   <span className="text-xs">·</span>
                   <p className="opacity-50 text-sm">
-                    {data?.number_of_seasons} Season
+                    {tv.number_of_seasons} Season
                   </p>
+                  <span className="text-xs">·</span>
+                  <p className="opacity-50 text-sm">{tv.origin_country[0]}</p>
                   <span className="text-xs">·</span>
                   <p className="opacity-50 text-sm">
-                    {data?.origin_country[0]}
+                    {tv.first_air_date.split("-")[0]}
                   </p>
                   <span className="text-xs">·</span>
-                  <p className="opacity-50 text-sm">
-                    {data?.first_air_date.split("-")[0]}
-                  </p>
-                  <span className="text-xs">·</span>
-                  <p className="opacity-50 text-sm">{data?.status}</p>
+                  <p className="opacity-50 text-sm">{tv.status}</p>
                 </div>
 
                 {/* Synopsis */}
-                <p className="opacity-50 font-sans md:w-3/4">
-                  {data?.overview}
-                </p>
+                <p className="opacity-50 font-sans md:w-3/4">{tv.overview}</p>
                 {/* Watch Button */}
                 <button
                   onClick={scrollToPlayer}
@@ -355,7 +344,7 @@ export default function TvDetail({
         {/* Seasons */}
         <div className="flex flex-col space-y-6 my-4">
           <div className="flex flex-wrap gap-4 items-center">
-            {[...Array(data?.number_of_seasons)].map((_, i) => (
+            {[...Array(tv.number_of_seasons)].map((_, i) => (
               <button
                 key={i + 1}
                 onClick={() => setSeason(i + 1)}
@@ -375,7 +364,7 @@ export default function TvDetail({
 
               return (
                 <Link
-                  href={`/episode/${slugify(data?.name as string)}-season-${
+                  href={`/episode/${slugify(tv.name as string)}-season-${
                     item.season_number
                   }-episode-${item.episode_number}?id=${movie_id}`}
                   // onClick={scrollToPlayer}
@@ -394,7 +383,7 @@ export default function TvDetail({
                       src={`https://image.tmdb.org/t/p/w500${item.still_path}`}
                       width={100}
                       height={100}
-                      alt={`${data?.name}`}
+                      alt={`${tv.name}`}
                       className="w-full h-full object-cover rounded-md"
                     />
                     <div className="absolute w-full h-full inset-0 bg-gradient-to-t from-background/70 to-transparent rounded-md">
@@ -493,14 +482,13 @@ export default function TvDetail({
           className="flex flex-col w-full md:w-1/2 h-auto border-b-2  border-white/20 p-4"
         >
           <div className="flex flex-col md:flex-row h-auto items-center gap-4">
-            <Image
-              src={"/profile.png"}
-              width={80}
-              height={80}
-              alt=""
-              priority
-              className="rounded-full w-auto h-auto object-cover"
-            />
+            <div className="w-32 h-32 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+              {user ? (
+                <h2 className="font-semibold text-4xl">{user?.username[0]}</h2>
+              ) : (
+                <User size={40} className="opacity-80" />
+              )}
+            </div>
             <div className="flex relative w-full">
               <p className="absolute top-1 right-3 text-xs">{msgLength}</p>
               <textarea
@@ -513,17 +501,8 @@ export default function TvDetail({
               />
             </div>
           </div>
-          <div className="flex flex-col md:flex-row justify-end gap-2 items-center">
-            <div className="flex items-center relative w-full md:w-1/2">
-              <UserCircle className="absolute top-2 left-1.5 text-slate-100/50" />
-              <input
-                type="text"
-                value={form.name ?? ""}
-                onChange={handleInput}
-                placeholder="Your Name"
-                className="w-full h-10 py-4 pl-10 pr-4 rounded-lg border border-red-500 outline-hidden placeholder:text-red-500"
-              />
-            </div>
+
+          <div className="flex justify-end">
             <button
               type="submit"
               className="cursor-pointer bg-red-500 w-full md:w-40 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 ease-in-out"
@@ -543,20 +522,22 @@ export default function TvDetail({
               No comments yet. Be the first to comment!
             </p>
           )}
-          {comments.map((comment) => [
+          {comments.map((comment) => (
             <div
               key={comment.id}
+              id={`comment-${comment.id}`}
               className="flex gap-4 border border-red-500/50 p-4 rounded-lg"
             >
               <div className="flex-shrink-0">
-                <Image
-                  src="/profile.png"
-                  width={40}
-                  height={40}
-                  alt={`${comment.username}'s profile`}
-                  priority
-                  className="rounded-full object-cover"
-                />
+                <div className="w-12 h-12 flex flex-shrink-0 justify-center items-center bg-red-500 rounded-full">
+                  {user ? (
+                    <h2 className="font-semibold text-xl">
+                      {user?.username[0]}
+                    </h2>
+                  ) : (
+                    <User size={16} className="opacity-80" />
+                  )}
+                </div>
               </div>
               <div className="flex flex-col flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-2">
@@ -570,15 +551,15 @@ export default function TvDetail({
                       year: "numeric",
                       hour: "numeric",
                       minute: "numeric",
-                    }).format(new Date(comment.created_at))}
+                    }).format(new Date(comment.createdAt))}
                   </p>
                 </div>
                 <p className="break-words text-sm leading-relaxed">
                   {comment.message}
                 </p>
               </div>
-            </div>,
-          ])}
+            </div>
+          ))}
         </div>
       </div>
     </div>
