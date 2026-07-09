@@ -4,7 +4,7 @@ const baseUrl = "https://terflix.web.id";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const res = await fetch(
-    `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.TMDB_API}`
+    `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.TMDB_TOKEN}`
   );
 
   const movies = await res.json();

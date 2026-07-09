@@ -9,7 +9,6 @@ import React from "react";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fieldErrors, setFieldErrors] = useState<any>({});
   const [serverError, setServerError] = useState("");
   const [showPassword, setShowPassword] = useState(false);

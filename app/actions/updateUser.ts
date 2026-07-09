@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getUser } from "./getUser";
-import { eq, and, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export async function updateProfile({ username }: { username: string }) {
   const user = await getUser();

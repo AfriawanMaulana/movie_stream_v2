@@ -1,16 +1,13 @@
 "use client";
 import { Bookmark, LogOut, MessageCircle, Settings } from "lucide-react";
-import { getUser } from "../actions/getUser";
-import { UserType } from "@/types/userType";
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "../actions/auth";
 import { toast } from "react-toastify";
 import { useUserStore } from "@/zustand/userStore";
 
 export default function Page() {
-  const pathName = usePathname();
   const router = useRouter();
   const { user, fetchUser, clearUser } = useUserStore();
   const [loading, setLoading] = useState(true);
