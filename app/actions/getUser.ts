@@ -24,6 +24,7 @@ export async function getUser(): Promise<UserType | null> {
     id: profile.id,
     username: profile.username,
     email: user.email!,
+    role: profile.role,
     avatar: profile.avatar,
     createdAt: profile.createdAt,
   };

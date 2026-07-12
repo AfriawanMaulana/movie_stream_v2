@@ -50,6 +50,13 @@
       "when": 1783483202058,
       "tag": "0006_fearless_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783744754440,
+      "tag": "0007_first_rhodey",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Footer from "./components/Footer";
 import { Analytics } from "@vercel/analytics/next";
@@ -7,10 +7,13 @@ import { ToastContainer } from "react-toastify";
 import PWAUpdater from "./pwa-updater";
 import { Suspense } from "react";
 
+export const viewport: Viewport = {
+  themeColor: "#000000",
+};
+
 export const metadata: Metadata = {
   title: "TERFLIX - Nonton Film, Serial TV berbagai Subtitle",
   manifest: "/app/manifest.ts",
-  themeColor: "#000000",
   description:
     "Platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
   icons: {

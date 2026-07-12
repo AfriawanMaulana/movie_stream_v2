@@ -7,10 +7,12 @@ import {
   pgEnum,
 } from "drizzle-orm/pg-core";
 
+export const roleEnum = pgEnum("role", ["user", "premium", "admin"]);
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
   username: varchar("username", { length: 16 }).notNull(),
   email: text("email").notNull().unique(),
+  role: roleEnum("role").default("user").notNull(),
   avatar: text("avatar"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

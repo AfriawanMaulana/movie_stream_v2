@@ -3,7 +3,7 @@ import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Bookmark, Play, Star, User } from "lucide-react";
+import { Bookmark, Play, Star, User, Crown } from "lucide-react";
 import Link from "next/link";
 import MovieDetailSkeleton from "./MovieDetailSkeleton";
 import { addToWatchlist, checkWatchlist } from "../actions/addToWatchlist";
@@ -11,6 +11,13 @@ import { toast } from "react-toastify";
 import { useUserStore } from "@/zustand/userStore";
 import { addComments, getComments } from "../actions/addComments";
 import { CommentType } from "@/types/commentType";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataType {
   id: number;
@@ -69,25 +76,28 @@ const servers = [
     name: "Server 1",
     disabled: true,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/movie`,
+    isPremium: false,
   },
   {
     id: 2,
     name: "Server 2",
     disabled: false,
     endpoint: `https://vidsrc.ru/movie`,
+    isPremium: false,
   },
   {
     id: 3,
     name: "Server 3",
     disabled: false,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/movie`,
+    isPremium: false,
   },
   {
     id: 4,
     name: "Server 4",
     disabled: false,
-    // endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/movie`,
     endpoint: `https://vidsrc.wiki/embed/movie`,
+    isPremium: true,
   },
 ];
 
@@ -118,6 +128,10 @@ export default function MovieDetail({ movie }: Props) {
   const stream_url = servers
     .filter((item) => item.id === switchServer)
     .map((e) => e.endpoint);
+
+  const userNotPremium = () => {
+    return !user || (user.role !== "premium" && user.role !== "admin");
+  };
 
   useEffect(() => {
     axios
@@ -326,19 +340,57 @@ export default function MovieDetail({ movie }: Props) {
           {isWatch && (
             <div className="my-10 space-y-4">
               {/* Server Selector */}
-              <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
-                {servers.map((server) => (
-                  <option
-                    key={server.id}
-                    value={server.id}
-                    disabled={server.disabled}
-                    onClick={() => setSwitchServer(server.id)}
-                    className="hover:bg-red-500"
-                  >
-                    {server.name}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={String(switchServer)}
+                onValueChange={(value) => setSwitchServer(Number(value))}
+              >
+                <SelectTrigger className="w-40 rounded-md border border-red-500 bg-background h-10 px-3 focus:ring-0 focus:ring-offset-0">
+                  <SelectValue placeholder="Select server" />
+                </SelectTrigger>
+
+                <SelectContent className="border-red-500 bg-background text-white">
+                  {servers.map((server) => (
+                    <SelectItem
+                      key={server.id}
+                      value={String(server.id)}
+                      disabled={
+                        server.disabled ||
+                        (server.isPremium && userNotPremium())
+                      }
+                      className="
+                        cursor-pointer
+                        rounded-md
+                        my-1
+                        px-3
+                        py-2
+                        hover:bg-red-500/50
+                        hover:text-white
+                        focus:bg-red-500/50
+                        focus:text-white
+                        data-[state=checked]:bg-red-500
+                        data-[state=checked]:text-white
+                      "
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <span>{server.name}</span>
+
+                          {server.isPremium && (
+                            <Crown
+                              size={14}
+                              className={`${
+                                userNotPremium()
+                                  ? "fill-yellow-500 stroke-yellow-400"
+                                  : "fill-zinc-300 stroke-zinc-300 opacity-50"
+                              }`}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <iframe
                 loading="lazy"
                 src={`${stream_url}/${movie_id}?autoplay=true&colour=ff0000&backbutton=https://terflix.vercel.app&logo=https://terflix.vercel.app/favicon.png`}
@@ -361,9 +413,9 @@ export default function MovieDetail({ movie }: Props) {
           Cast
         </h1>
         <div className="flex overflow-x-auto space-x-5 md:space-x-10 no-scrollbar">
-          {dataCast?.cast.map((cast) => (
+          {dataCast?.cast.map((cast, i) => (
             <div
-              key={cast.id}
+              key={i}
               className="flex flex-col items-center justify-center flex-shrink-0"
             >
               {cast.profile_path ? (

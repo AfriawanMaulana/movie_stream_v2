@@ -29,6 +29,7 @@
     "next-pwa": "^5.6.0",
     "postgres": "^3.4.9",
     "puppeteer": "^24.16.0",
+    "radix-ui": "^1.6.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-toastify": "^11.1.0",
