@@ -4,12 +4,19 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Play, Star, User } from "lucide-react";
+import { Crown, Play, Star, User } from "lucide-react";
 import TVDetailSkeleton from "./TVDetailSkeleton";
 import { addComments, getComments } from "../actions/addComments";
 import { toast } from "react-toastify";
 import { CommentType } from "@/types/commentType";
 import { useUserStore } from "@/zustand/userStore";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataType {
   id: number;
@@ -85,19 +92,22 @@ const servers = [
     id: 1,
     name: "Server 1",
     disabled: true,
+    isPremium: false,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC_API}/tv`,
   },
   {
     id: 2,
     name: "Server 2",
     disabled: false,
+    isPremium: false,
     endpoint: `${process.env.NEXT_PUBLIC_VIDSRC2_API}/tv`,
   },
   {
     id: 3,
     name: "Server 3",
-    disabled: true,
-    endpoint: `${process.env.NEXT_PUBLIC_SMASHY_API}/tv`,
+    disabled: false,
+    isPremium: true,
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC3_API}/tv`,
   },
 ];
 
@@ -135,6 +145,10 @@ export default function TvDetail({
   const stream_url = servers
     .filter((item) => item.id === switchServer)
     .map((e) => e.endpoint);
+
+  const userNotPremium = () => {
+    return !user || (user.role !== "premium" && user.role !== "admin");
+  };
 
   useEffect(() => {
     // API TV Episode by Season
@@ -310,26 +324,67 @@ export default function TvDetail({
           {isWatch && (
             <div>
               <div className="mb-4">
-                <select className="select select-ghost rounded-md bg-background border border-red-500 w-40 p-2">
-                  {servers.map((server) => (
-                    <option
-                      key={server.id}
-                      value={server.id}
-                      disabled={server.disabled}
-                      onClick={() => setSwitchServer(server.id)}
-                      className="hover:bg-red-500"
-                    >
-                      {server.name}
-                    </option>
-                  ))}
-                </select>
+                {/* Server Selector */}
+                <Select
+                  value={String(switchServer)}
+                  onValueChange={(value) => setSwitchServer(Number(value))}
+                >
+                  <SelectTrigger className="w-40 rounded-md border border-red-500 bg-background h-10 px-3 focus:ring-0 focus:ring-offset-0">
+                    <SelectValue placeholder="Select server" />
+                  </SelectTrigger>
+
+                  <SelectContent className="border-red-500 bg-background text-white">
+                    {servers.map((server) => (
+                      <SelectItem
+                        key={server.id}
+                        value={String(server.id)}
+                        disabled={
+                          server.disabled ||
+                          (server.isPremium && userNotPremium())
+                        }
+                        className="
+                        cursor-pointer
+                        rounded-md
+                        my-1
+                        px-3
+                        py-2
+                        hover:bg-red-500/50
+                        hover:text-white
+                        focus:bg-red-500/50
+                        focus:text-white
+                        data-[state=checked]:bg-red-500
+                        data-[state=checked]:text-white
+                      "
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-2">
+                            <span>{server.name}</span>
+
+                            {server.isPremium && (
+                              <Crown
+                                size={14}
+                                className={`${
+                                  userNotPremium()
+                                    ? "fill-yellow-500 stroke-yellow-400"
+                                    : "fill-zinc-300 stroke-zinc-300 opacity-50"
+                                }`}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <iframe
                 loading="lazy"
                 src={
                   !specific
-                    ? `${stream_url}/${movie_id}?autoPlay=false`
-                    : `${stream_url}/${movie_id}/${specific}?autoPlay=false`
+                    ? `${stream_url}/${movie_id}/${season ?? 1}/${
+                        episode_number ?? 1
+                      }`
+                    : `${stream_url}/${movie_id}/${specific}`
                 }
                 title="Movie player"
                 allowFullScreen

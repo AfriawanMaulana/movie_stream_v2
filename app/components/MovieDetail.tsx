@@ -96,7 +96,7 @@ const servers = [
     id: 4,
     name: "Server 4",
     disabled: false,
-    endpoint: `https://vidsrc.wiki/embed/movie`,
+    endpoint: `${process.env.NEXT_PUBLIC_VIDSRC3_API}/movie`,
     isPremium: true,
   },
 ];
@@ -393,7 +393,7 @@ export default function MovieDetail({ movie }: Props) {
               </Select>
               <iframe
                 loading="lazy"
-                src={`${stream_url}/${movie_id}?autoplay=true&colour=ff0000&backbutton=https://terflix.vercel.app&logo=https://terflix.vercel.app/favicon.png`}
+                src={`${stream_url}/${movie_id}`}
                 title="Movie player"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; allowFullScreen; gyroscope; picture-in-picture"
