@@ -1,9 +1,8 @@
-import { Suspense } from "react";
-import MovieList from "../components/MovieList";
-import { getMovies } from "@/lib/tmdb/getMovies";
-import MovieSkeleton from "../components/MovieSkeleton";
-
 export const dynamic = "force-dynamic";
+import { Suspense } from "react";
+import MovieList from "@/app/components/MovieList";
+import { getMovies } from "@/lib/tmdb/getMovies";
+import MovieSkeleton from "@/app/components/MovieSkeleton";
 
 export default async function Page({
   searchParams,
@@ -14,17 +13,17 @@ export default async function Page({
   const page = Number(params.page) || 1;
   const query = params?.get || "movie";
 
-  const trending = await getMovies(`/api/tmdb/trending/${query}/week`, page);
+  const data = await getMovies(`/api/tmdb/movie/now_playing`, page);
 
   return (
     <div>
-      <title>Most Watched - TERFLIX</title>
+      <title>Movies - TERFLIX</title>
       <section className="px-5 lg:px-14 py-20">
-        <Suspense fallback={<MovieSkeleton count={12} />}>
+        <Suspense fallback={<MovieSkeleton />}>
           <MovieList
-            data={trending}
+            data={data}
             category={query as string}
-            header="Trending"
+            header="now playing"
             isPagination
           />
         </Suspense>

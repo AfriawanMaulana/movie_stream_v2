@@ -1,14 +1,14 @@
 // app/page.tsx
 export const dynamic = "force-dynamic";
 
-import MovieList from "../components/MovieList";
+import MovieList from "../../components/MovieList";
 // import ParticlesDemo from "./components/ParticlesEffect";
 // import SearchInput from "./components/SearchInput";
 import { getMovies } from "@/lib/tmdb/getMovies";
-import Carousel from "../components/Carousel";
+import Carousel from "../../components/Carousel";
 import { Suspense } from "react";
-import MovieSkeleton from "../components/MovieSkeleton";
-import CarouselSkeleton from "../components/CarouselSkeleton";
+import MovieSkeleton from "../../components/MovieSkeleton";
+import CarouselSkeleton from "../../components/CarouselSkeleton";
 export default async function Home() {
   const page = 1;
   // const today = new Date().toISOString().split("T")[0];

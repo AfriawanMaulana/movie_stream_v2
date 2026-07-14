@@ -57,6 +57,13 @@
       "when": 1783744754440,
       "tag": "0007_first_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783852647910,
+      "tag": "0008_tiny_bullseye",
+      "breakpoints": true
     }
   ]
 }

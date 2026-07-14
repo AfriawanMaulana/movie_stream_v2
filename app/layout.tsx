@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import Footer from "./components/Footer";
 import { Analytics } from "@vercel/analytics/next";
-import Navbar from "./components/Navbar";
 import { ToastContainer } from "react-toastify";
 import PWAUpdater from "./pwa-updater";
-import { Suspense } from "react";
 
 export const viewport: Viewport = {
   themeColor: "#000000",
@@ -57,12 +54,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <PWAUpdater />
-        <Suspense fallback={null}>
-          <Navbar />
-        </Suspense>
         <div className="min-h-screen">{children}</div>
         <Analytics />
-        <Footer />
         <ToastContainer position="bottom-right" autoClose={3000} theme="dark" />
       </body>
     </html>

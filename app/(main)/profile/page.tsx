@@ -3,7 +3,7 @@ import { Bookmark, LogOut, MessageCircle, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signOut } from "../actions/auth";
+import { signOut } from "@/app/actions/auth";
 import { toast } from "react-toastify";
 import { useUserStore } from "@/zustand/userStore";
 

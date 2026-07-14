@@ -1,5 +1,5 @@
-import MovieList from "../components/MovieList";
-import Navbar from "../components/Navbar";
+import MovieList from "../../components/MovieList";
+import Navbar from "../../components/Navbar";
 import { getMovies } from "@/lib/tmdb/getMovies";
 
 export default async function MovieSection({

@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     useCache: true,
+    // nodeMiddleware: true,
   },
 };
 

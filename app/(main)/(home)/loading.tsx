@@ -1,5 +1,5 @@
-import CarouselSkeleton from "../components/CarouselSkeleton";
-import MovieSkeleton from "../components/MovieSkeleton";
+import CarouselSkeleton from "../../components/CarouselSkeleton";
+import MovieSkeleton from "../../components/MovieSkeleton";
 
 export default function Loading() {
   return (

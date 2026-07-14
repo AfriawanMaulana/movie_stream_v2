@@ -1,8 +1,8 @@
 import { getMovies } from "@/lib/tmdb/getMovies";
-import MovieList from "../components/MovieList";
+import MovieList from "@/app/components/MovieList";
 import { Suspense } from "react";
-import MovieSkeleton from "../components/MovieSkeleton";
-import Carousel from "../components/Carousel";
+import MovieSkeleton from "@/app/components/MovieSkeleton";
+import Carousel from "@/app/components/Carousel";
 
 export const dynamic = "force-dynamic";
 

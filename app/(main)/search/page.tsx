@@ -1,8 +1,8 @@
-import MovieList from "../components/MovieList";
-import SearchInput from "../components/SearchInput";
+import MovieList from "@/app/components/MovieList";
+import SearchInput from "@/app/components/SearchInput";
 import SearchFilter from "./SearchFilter";
 import { getMovies } from "@/lib/tmdb/getMovies";
-import MovieSkeleton from "../components/MovieSkeleton";
+import MovieSkeleton from "@/app/components/MovieSkeleton";
 import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
