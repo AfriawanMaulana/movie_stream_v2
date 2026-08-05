@@ -1,0 +1,1 @@
+ALTER TABLE "watch_history" ADD COLUMN "backdrop_path" text;

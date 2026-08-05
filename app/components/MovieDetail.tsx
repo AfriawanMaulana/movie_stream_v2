@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import { useUserStore } from "@/zustand/userStore";
 import { addComments, getComments } from "../actions/addComments";
 import { CommentType } from "@/types/commentType";
+import { recordWatchHistory } from "@/app/actions/watchHistory";
+import { saveLocalWatchHistory } from "@/lib/localWatchHistory";
 import {
   Select,
   SelectContent,
@@ -101,15 +103,56 @@ const servers = [
   },
 ];
 
+// Throttle: progress paling cepat ter-update tiap 15 detik (kecuali saat pause, dipaksa save)
+const PROGRESS_THROTTLE_MS = 15000;
+
 type Props = {
   movie: DataType;
 };
 
 export default function MovieDetail({ movie }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const movie_id = useSearchParams().get("id");
+
+  const initialServer = searchParams.get("server");
+  const [switchServer, setSwitchServer] = useState(
+    initialServer ? Number(initialServer) : 2
+  );
+  const [isServerLoading, setIsServerLoading] = useState(false);
+
   const { user, fetchUser } = useUserStore();
-  const [switchServer, setSwitchServer] = useState(2);
+  const saveWatchHistory = (payload: {
+    movie_id: string;
+    title: string;
+    poster_path: string;
+    backdrop_path?: string;
+    category: "movie" | "tv";
+    server: number;
+    season_number?: number;
+    episode_number?: number;
+    progress?: number;
+    duration?: number;
+  }) => {
+    if (user) {
+      // User login -> simpan ke database
+      recordWatchHistory(payload);
+    } else {
+      // Guest -> simpan ke localStorage
+      saveLocalWatchHistory({
+        movieId: payload.movie_id,
+        title: payload.title,
+        posterPath: payload.poster_path,
+        backdropPath: payload.backdrop_path ?? null,
+        category: payload.category,
+        server: payload.server,
+        seasonNumber: payload.season_number ?? null,
+        episodeNumber: payload.episode_number ?? null,
+        progress: payload.progress ?? null,
+        duration: payload.duration ?? null,
+      });
+    }
+  };
   const data = movie;
   const [dataCast, setDataCast] = useState<CastProps | null>(null);
   const [isWatch, setIsWatch] = useState(false);
@@ -118,12 +161,121 @@ export default function MovieDetail({ movie }: Props) {
     comment: "",
   });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [msgLength, setMsgLength] = useState(500);
   const [comments, setComments] = useState<CommentType[]>([]);
+  
+  // Read More/Less Overview
+  const [showFullOverview, setShowFullOverview] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const overviewRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (overviewRef.current) {
+      setIsOverflowing(
+        overviewRef.current.scrollHeight > overviewRef.current.clientHeight
+      );
+    }
+  }, [data.overview]);
+
+  // Ref untuk throttle progress update, dan ref switchServer supaya listener selalu baca value terbaru
+  const lastSavedRef = useRef<number>(0);
+  const switchServerRef = useRef(switchServer);
+
+  useEffect(() => {
+    switchServerRef.current = switchServer;
+  }, [switchServer]);
 
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
+
+  useEffect(() => {
+    const shouldAutoplay = searchParams.get("autoplay") === "true";
+    if (!shouldAutoplay) return;
+
+    setIsWatch(true);
+
+    const timeout = setTimeout(() => {
+      const player = document.getElementById("player");
+      player?.scrollIntoView({ behavior: "smooth" });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [searchParams]);
+
+  // Event progress watch history dari player (postMessage)
+  useEffect(() => {
+    const saveProgress = (currentTime: number, duration: number, force = false) => {
+      const now = Date.now();
+      if (!force && now - lastSavedRef.current < PROGRESS_THROTTLE_MS) return;
+      lastSavedRef.current = now;
+
+      saveWatchHistory({ 
+        movie_id: String(movie_id),
+        title: data?.title || data?.original_title || "",
+        poster_path: data?.poster_path ?? "",
+        backdrop_path: data?.backdrop_path,
+        category: "movie",
+        server: switchServerRef.current,
+        progress: Math.floor(currentTime),
+        duration: Math.floor(duration),
+      });
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      const payload =
+        typeof event.data === "object" && event.data !== null
+          ? event.data
+          : null;
+
+      const eventType =
+        typeof payload?.type === "string"
+          ? payload.type
+          : typeof event.data?.type === "string"
+          ? event.data.type
+          : "";
+
+      const currentTime =
+        typeof payload?.currentTime === "number"
+          ? payload.currentTime
+          : typeof payload?.time === "number"
+          ? payload.time
+          : typeof payload?.position === "number"
+          ? payload.position
+          : null;
+
+      const duration =
+        typeof payload?.duration === "number"
+          ? payload.duration
+          : typeof payload?.videoDuration === "number"
+          ? payload.videoDuration
+          : null;
+
+      const fromPlayer =
+        event.source === iframeRef.current?.contentWindow ||
+        (typeof event.origin === "string" &&
+          (event.origin.includes("vidsrc") ||
+            event.origin.includes("embed") ||
+            event.origin.includes("player")));
+
+      if (!fromPlayer || currentTime === null) return;
+
+      if (eventType === "pause") {
+        saveProgress(currentTime, duration ?? undefined, true);
+      } else if (
+        eventType === "PLAYER_TIME_UPDATE" ||
+        eventType === "timeupdate" ||
+        eventType === "progress" ||
+        eventType === "player-progress"
+      ) {
+        saveProgress(currentTime, duration ?? undefined, false);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [movie_id, data]);
 
   const stream_url = servers
     .filter((item) => item.id === switchServer)
@@ -212,10 +364,19 @@ export default function MovieDetail({ movie }: Props) {
 
   const scrollToPlayer = () => {
     setIsWatch(true);
-    const player = document.getElementById("player");
-    if (player) {
-      player.scrollIntoView({ behavior: "smooth" });
-    }
+
+    saveWatchHistory({ 
+    movie_id: String(movie_id),
+    title: movie.title,
+    poster_path: movie.poster_path,
+    backdrop_path: movie.backdrop_path,
+    category: "movie",
+    server: switchServer,
+    duration: data.runtime ? data.runtime * 60 : undefined,
+  });
+
+  const player = document.getElementById("player");
+  player?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -241,11 +402,7 @@ export default function MovieDetail({ movie }: Props) {
     });
   }, [comments]);
 
-  useEffect(() => {
-    window.addEventListener("load", () => {
-      if (!window.location.hash) window.scrollTo(0, 0);
-    });
-  }, []);
+
 
   if (!data) return <MovieDetailSkeleton />;
 
@@ -253,12 +410,13 @@ export default function MovieDetail({ movie }: Props) {
     <div className="py-20 flex flex-col space-y-10">
       <div className="flex gap-5 pb-4">
         {/* Movie Info */}
-        <div className="relative w-full md:h-[75vh] h-[80vh]">
+        <div className="relative w-full h-[80vh] md:h-[75vh]">
           <Image
-            src={`https://image.tmdb.org/t/p/original/${data.backdrop_path}`}
+            src={`https://image.tmdb.org/t/p/w1280/${data.backdrop_path}`}
             fill
             alt={`${data.title}`}
-            unoptimized
+            priority
+            sizes="100vw"
             className="object-cover opacity-55"
           />
           <div className="absolute inset-0 gap-10 bg-gradient-to-t from-background to-transparent w-full h-full">
@@ -268,7 +426,7 @@ export default function MovieDetail({ movie }: Props) {
                 width={130}
                 height={130}
                 alt={`${data.title}`}
-                unoptimized
+                sizes="(max-width: 768px) 150px, 208px"
                 className="w-36 md:w-52 h-auto object-cover rounded-xl"
               />
               <div className="flex flex-col space-y-4">
@@ -312,7 +470,24 @@ export default function MovieDetail({ movie }: Props) {
                   ))}
                 </div>
                 {/* Synopsis */}
-                <p className="opacity-50 font-sans md:w-3/4">{data.overview}</p>
+                <div>
+                  <p
+                    ref={overviewRef}
+                    className={`opacity-50 font-sans md:w-3/4 ${
+                      showFullOverview ? "" : "line-clamp-5"
+                    }`}
+                  >
+                    {data.overview}
+                  </p>
+                  {isOverflowing && (
+                    <button
+                      onClick={() => setShowFullOverview((prev) => !prev)}
+                      className="text-red-500 text-sm font-medium mt-1 hover:text-red-400"
+                    >
+                      {showFullOverview ? "Read less" : "Read more"}
+                    </button>
+                  )}
+                </div>
                 {/* Watch Button */}
                 <div className="flex gap-4 items-center">
                   <button
@@ -342,7 +517,22 @@ export default function MovieDetail({ movie }: Props) {
               {/* Server Selector */}
               <Select
                 value={String(switchServer)}
-                onValueChange={(value) => setSwitchServer(Number(value))}
+                onValueChange={(value) => {
+                  const newServer = Number(value);
+                  setSwitchServer(newServer);
+                  setIsServerLoading(true);
+
+                  // Simpan server terpilih ke history juga, supaya server terakhir tercatat
+                  saveWatchHistory({
+                    movie_id: String(movie_id),
+                    title: movie.title,
+                    poster_path: movie.poster_path,
+                    backdrop_path: movie.backdrop_path,
+                    category: "movie",
+                    server: switchServer,
+                    duration: data.runtime ? data.runtime * 60 : undefined,
+                  });
+                }}
               >
                 <SelectTrigger className="w-40 rounded-md border border-red-500 bg-background h-10 px-3 focus:ring-0 focus:ring-offset-0">
                   <SelectValue placeholder="Select server" />
@@ -391,20 +581,35 @@ export default function MovieDetail({ movie }: Props) {
                   ))}
                 </SelectContent>
               </Select>
-              <iframe
-                loading="lazy"
-                src={`${stream_url}/${movie_id}`}
-                title="Movie player"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; allowFullScreen; gyroscope; picture-in-picture"
-                referrerPolicy="no-referrer"
-                className="flex w-full h-[315px] md:h-screen"
-                // sandbox={
-                //   switchServer === 1
-                //     ? "allow-scripts allow-same-origin allow-forms"
-                //     : undefined
-                // }
-              ></iframe>
+              <div className="relative w-full h-[315px] md:h-screen">
+                {isServerLoading && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 text-white bg-black">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-red-500" />
+                        <span className="text-sm font-medium tracking-wide">
+                          LOADING SERVER {switchServer}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                <iframe
+                  key={switchServer}
+                  ref={iframeRef}
+                  loading="lazy"
+                  src={`${stream_url}/${movie_id}`}
+                  title="Movie player"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; allowFullScreen; gyroscope; picture-in-picture"
+                  referrerPolicy="no-referrer"
+                  className="flex w-full h-[315px] md:h-screen"
+                  onLoad={() => setIsServerLoading(false)}
+                  // sandbox={
+                  //   switchServer === 1
+                  //     ? "allow-scripts allow-same-origin allow-forms"
+                  //     : undefined
+                  // }
+                ></iframe>
+              </div>
             </div>
           )}
         </div>
@@ -420,7 +625,7 @@ export default function MovieDetail({ movie }: Props) {
             >
               {cast.profile_path ? (
                 <Image
-                  src={`https://image.tmdb.org/t/p/w500${cast.profile_path}`}
+                  src={`https://image.tmdb.org/t/p/w185${cast.profile_path}`}
                   width={100}
                   height={100}
                   alt={`${cast.name}`}

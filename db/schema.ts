@@ -6,6 +6,8 @@ import {
   timestamp,
   pgEnum,
   boolean,
+  integer,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["user", "premium", "admin"]);
@@ -50,3 +52,27 @@ export const comments = pgTable("comments", {
     .defaultNow()
     .notNull(),
 });
+
+export const watchHistory = pgTable(
+  "watch_history",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    movieId: text("movie_id").notNull(),
+    title: text("title").notNull(),
+    posterPath: text("poster_path"),
+    backdropPath: text("backdrop_path"),
+    category: categoryEnum("category").notNull(),
+    server: integer("server").notNull(),
+    seasonNumber: integer("season_number"),
+    episodeNumber: integer("episode_number"),
+    progress: integer("progress").default(0),
+    duration: integer("duration"),
+    watchedAt: timestamp("watched_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueWatchL: unique().on(table.userId, table.movieId, table.category),
+  })
+);

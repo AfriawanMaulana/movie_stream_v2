@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import { addComments, getComments } from "../actions/addComments";
 import { toast } from "react-toastify";
 import { CommentType } from "@/types/commentType";
 import { useUserStore } from "@/zustand/userStore";
+import { recordWatchHistory } from "@/app/actions/watchHistory";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { saveLocalWatchHistory } from "@/lib/localWatchHistory";
 
 interface DataType {
   id: number;
@@ -46,6 +48,7 @@ interface DataType {
     season_number: number;
   };
   origin_country: [string];
+  runtime: number;
   status: string;
 }
 
@@ -111,6 +114,9 @@ const servers = [
   },
 ];
 
+// Throttle: progress paling cepat ter-update tiap 15 detik (kecuali saat pause, dipaksa save)
+const PROGRESS_THROTTLE_MS = 15000;
+
 export default function TvDetail({
   tv,
   specific,
@@ -120,13 +126,60 @@ export default function TvDetail({
   specific?: string;
   showVideo?: boolean;
 }) {
-  const movie_id = useSearchParams().get("id");
+  const searchParams = useSearchParams();
+  const movie_id = searchParams.get("id");
+
   const { user } = useUserStore();
+
+  // saveWatchHistory dibungkus useCallback supaya bisa aman dipakai sebagai dependency effect,
+  // dan selalu baca `user` terbaru (tidak stale di closure listener postMessage)
+  const saveWatchHistory = useCallback(
+    (payload: {
+      movie_id: string;
+      title: string;
+      poster_path: string;
+      backdrop_path?: string;
+      category: "movie" | "tv";
+      server: number;
+      season_number?: number;
+      episode_number?: number;
+      progress?: number;
+      duration?: number;
+    }) => {
+      if (user) {
+        // User login -> simpan ke database
+        recordWatchHistory(payload);
+      } else {
+        // Guest -> simpan ke localStorage
+        saveLocalWatchHistory({
+          movieId: payload.movie_id,
+          title: payload.title,
+          posterPath: payload.poster_path,
+          backdropPath: payload.backdrop_path ?? null,
+          category: payload.category,
+          server: payload.server,
+          seasonNumber: payload.season_number ?? null,
+          episodeNumber: payload.episode_number ?? null,
+          progress: payload.progress ?? null,
+          duration: payload.duration ?? null,
+        });
+      }
+    },
+    [user]
+  );
+
   const [dataEpisode, setDataEpisode] = useState<EpisodeType | null>(null);
   const [dataCast, setDataCast] = useState<CastProps | null>(null);
   const [isWatch, setIsWatch] = useState(showVideo || false);
   const [season, setSeason] = useState(1);
-  const [switchServer, setSwitchServer] = useState(2);
+
+  // Ambil server dari query string kalau ada (misal redirect dari watch history)
+  const initialServer = searchParams.get("server");
+  const [switchServer, setSwitchServer] = useState(
+    initialServer ? Number(initialServer) : 2
+  );
+  const [isServerLoading, setIsServerLoading] = useState(false);
+
   const getParams = useParams().slug?.toString();
 
   const match = getParams?.match(/season-(\d+)-episode-(\d+)/);
@@ -138,10 +191,32 @@ export default function TvDetail({
   });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [msgLength, setMsgLength] = useState(500);
   const [comments, setComments] = useState<CommentType[]>([]);
 
-  // const stream_url = process.env.NEXT_PUBLIC_VIDSRC_API + "/tv";
+  // Ref untuk throttle progress update, dan ref switchServer/season supaya listener selalu baca value terbaru
+  const lastSavedRef = useRef<number>(0);
+  const switchServerRef = useRef(switchServer);
+  const seasonRef = useRef(season);
+
+  useEffect(() => {
+    switchServerRef.current = switchServer;
+  }, [switchServer]);
+
+  useEffect(() => {
+    seasonRef.current = season;
+  }, [season]);
+
+  // Sinkronkan state `season` dengan season_number dari URL saat pertama buka halaman episode,
+  // supaya daftar episode yang ditampilkan sesuai season yang sedang ditonton
+  useEffect(() => {
+    if (season_number) {
+      setSeason(Number(season_number));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const stream_url = servers
     .filter((item) => item.id === switchServer)
     .map((e) => e.endpoint);
@@ -227,14 +302,148 @@ export default function TvDetail({
     fetchComments();
   }, [tv.id]);
 
+  // Auto-save history + buka player kalau masuk lewat klik episode (halaman /episode/[slug])
+  // atau lewat tombol Watch Now (showVideo true dari server, atau specific ada isinya)
+  useEffect(() => {
+    if (!showVideo && !specific) return;
+
+    setIsWatch(true);
+
+    saveWatchHistory({
+      movie_id: String(movie_id),
+      title: tv.name || tv.original_name,
+      poster_path: tv.poster_path,
+      backdrop_path: tv.backdrop_path,
+      category: "tv",
+      server: switchServerRef.current,
+      season_number: Number(season_number) || seasonRef.current,
+      episode_number: Number(episode_number) || undefined,
+    });
+
+    const timeout = setTimeout(() => {
+      const player = document.getElementById("player");
+      player?.scrollIntoView({ behavior: "smooth" });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // sekali saat mount, representasi "baru buka halaman episode/watch ini"
+
+  // Event progress watch history dari player (postMessage)
+  useEffect(() => {
+    const saveProgress = (
+      currentTime: number,
+      duration: number | undefined,
+      force = false
+    ) => {
+      const now = Date.now();
+      if (!force && now - lastSavedRef.current < PROGRESS_THROTTLE_MS) return;
+      lastSavedRef.current = now;
+
+      saveWatchHistory({
+        movie_id: String(movie_id),
+        title: tv?.name || tv?.original_name || "",
+        poster_path: tv?.poster_path ?? "",
+        backdrop_path: tv?.backdrop_path,
+        category: "tv",
+        server: switchServerRef.current,
+        season_number: Number(season_number) || seasonRef.current,
+        episode_number: Number(episode_number) || undefined,
+        progress: Math.floor(currentTime),
+        duration: duration !== undefined ? Math.floor(duration) : undefined,
+      });
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      const payload =
+        typeof event.data === "object" && event.data !== null
+          ? event.data
+          : null;
+
+      const eventType = typeof payload?.type === "string" ? payload.type : "";
+
+      const currentTime =
+        typeof payload?.currentTime === "number"
+          ? payload.currentTime
+          : typeof payload?.time === "number"
+          ? payload.time
+          : typeof payload?.position === "number"
+          ? payload.position
+          : null;
+
+      const duration =
+        typeof payload?.duration === "number"
+          ? payload.duration
+          : typeof payload?.videoDuration === "number"
+          ? payload.videoDuration
+          : undefined;
+
+      const fromPlayer =
+        event.source === iframeRef.current?.contentWindow ||
+        (typeof event.origin === "string" &&
+          (event.origin.includes("vidsrc") ||
+            event.origin.includes("embed") ||
+            event.origin.includes("player")));
+
+      if (!fromPlayer || currentTime === null) return;
+
+      if (eventType === "pause") {
+        saveProgress(currentTime, duration, true);
+      } else if (
+        eventType === "PLAYER_TIME_UPDATE" ||
+        eventType === "timeupdate" ||
+        eventType === "progress" ||
+        eventType === "player-progress"
+      ) {
+        saveProgress(currentTime, duration, false);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [
+    episode_number,
+    movie_id,
+    season_number,
+    tv.name,
+    tv.original_name,
+    tv.poster_path,
+    tv.backdrop_path,
+    saveWatchHistory,
+  ]);
+
   const scrollToPlayer = () => {
     setIsWatch(true);
 
+    saveWatchHistory({
+      movie_id: String(movie_id),
+      title: tv.name || tv.original_name,
+      poster_path: tv.poster_path,
+      backdrop_path: tv.backdrop_path,
+      category: "tv", // FIX: sebelumnya salah kirim "movie"
+      server: switchServer,
+      season_number: Number(season_number) || season,
+      episode_number: Number(episode_number) || undefined,
+    });
+
     const player = document.getElementById("player");
-    if (player) {
-      player.scrollIntoView({ behavior: "smooth" });
-    }
+    player?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Auto-buka player kalau datang dari watch history (?autoplay=true)
+  useEffect(() => {
+    const shouldAutoplay = searchParams.get("autoplay") === "true";
+    if (!shouldAutoplay) return;
+
+    setIsWatch(true);
+
+    const timeout = setTimeout(() => {
+      const player = document.getElementById("player");
+      player?.scrollIntoView({ behavior: "smooth" });
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!comments.length) return;
@@ -246,12 +455,6 @@ export default function TvDetail({
     });
   }, [comments]);
 
-  useEffect(() => {
-    window.addEventListener("load", () => {
-      if (!window.location.hash) window.scrollTo(0, 0);
-    });
-  }, []);
-
   if (!tv) return <TVDetailSkeleton />;
 
   return (
@@ -260,10 +463,11 @@ export default function TvDetail({
         {/* Movie Info */}
         <div className="relative w-full md:h-[75vh] h-[80vh]">
           <Image
-            src={`https://image.tmdb.org/t/p/original/${tv.backdrop_path}`}
+            src={`https://image.tmdb.org/t/p/w1280/${tv.backdrop_path}`}
             fill
             alt={`${tv.name}`}
-            unoptimized
+            priority
+            sizes="100vw"
             className="object-cover opacity-55"
           />
           <div className="absolute inset-0 gap-10 bg-gradient-to-t from-background to-transparent w-full h-full">
@@ -273,7 +477,7 @@ export default function TvDetail({
                 width={130}
                 height={130}
                 alt={`${tv.name}`}
-                unoptimized
+                sizes="(max-width: 768px) 150px, 208px"
                 className="w-36 md:w-52 h-auto object-cover rounded-xl"
               />
               <div className="flex flex-col space-y-4">
@@ -327,7 +531,24 @@ export default function TvDetail({
                 {/* Server Selector */}
                 <Select
                   value={String(switchServer)}
-                  onValueChange={(value) => setSwitchServer(Number(value))}
+                  onValueChange={(value) => {
+                    const newServer = Number(value);
+                    setSwitchServer(newServer);
+                    setIsServerLoading(true);
+
+                    // Simpan server terpilih ke history juga
+                    // FIX: kirim newServer, bukan switchServer (state lama, belum ter-update saat closure ini dibuat)
+                    saveWatchHistory({
+                      movie_id: String(movie_id),
+                      title: tv.name || tv.original_name,
+                      poster_path: tv.poster_path,
+                      backdrop_path: tv.backdrop_path,
+                      category: "tv",
+                      server: newServer,
+                      season_number: Number(season_number) || season,
+                      episode_number: Number(episode_number) || undefined,
+                    });
+                  }}
                 >
                   <SelectTrigger className="w-40 rounded-md border border-red-500 bg-background h-10 px-3 focus:ring-0 focus:ring-offset-0">
                     <SelectValue placeholder="Select server" />
@@ -377,22 +598,37 @@ export default function TvDetail({
                   </SelectContent>
                 </Select>
               </div>
-              <iframe
-                loading="lazy"
-                src={
-                  !specific
-                    ? `${stream_url}/${movie_id}/${season ?? 1}/${
-                        episode_number ?? 1
-                      }`
-                    : `${stream_url}/${movie_id}/${specific}`
-                }
-                title="Movie player"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                referrerPolicy="no-referrer"
-                // sandbox="allow-scripts allow-same-origin"
-                className="flex w-full h-[315px] md:h-screen"
-              ></iframe>
+              <div className="relative w-full h-[315px] md:h-screen">
+                {isServerLoading && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 text-white bg-black">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-red-500" />
+                      <span className="text-sm font-medium tracking-wide">
+                        LOADING SERVER {switchServer}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <iframe
+                  key={switchServer}
+                  ref={iframeRef}
+                  loading="lazy"
+                  src={
+                    !specific
+                      ? `${stream_url}/${movie_id}/${season ?? 1}/${
+                          episode_number ?? 1
+                        }`
+                      : `${stream_url}/${movie_id}/${specific}`
+                  }
+                  title="Movie player"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  referrerPolicy="no-referrer"
+                  // sandbox="allow-scripts allow-same-origin"
+                  className="flex w-full h-[315px] md:h-screen"
+                  onLoad={() => setIsServerLoading(false)}
+                ></iframe>
+              </div>
             </div>
           )}
         </div>
@@ -422,7 +658,6 @@ export default function TvDetail({
                   href={`/episode/${slugify(tv.name as string)}-season-${
                     item.season_number
                   }-episode-${item.episode_number}?id=${movie_id}`}
-                  // onClick={scrollToPlayer}
                   key={item.id}
                   className="flex flex-col w-full md:h-[170px] gap-2 items-center rounded-md hover:cursor-pointer"
                 >
@@ -435,10 +670,11 @@ export default function TvDetail({
                     } relative w-full hover:scale-105 transition-all ease-in-out duration-200 rounded-md`}
                   >
                     <Image
-                      src={`https://image.tmdb.org/t/p/w500${item.still_path}`}
+                      src={`https://image.tmdb.org/t/p/w300${item.still_path}`}
                       width={100}
                       height={100}
                       alt={`${tv.name}`}
+                      sizes="(max-width: 768px) 50vw, 16vw"
                       className="w-full h-full object-cover rounded-md"
                     />
                     <div className="absolute w-full h-full inset-0 bg-gradient-to-t from-background/70 to-transparent rounded-md">
@@ -511,7 +747,7 @@ export default function TvDetail({
             >
               {cast.profile_path ? (
                 <Image
-                  src={`https://image.tmdb.org/t/p/w500${cast.profile_path}`}
+                  src={`https://image.tmdb.org/t/p/w185${cast.profile_path}`}
                   width={100}
                   height={100}
                   alt={`${cast.name}`}

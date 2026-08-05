@@ -53,15 +53,16 @@ export default function Carousel({
         }}
         loop={true}
       >
-        {data.map((item: DataProps) => (
+        {data.map((item: DataProps, index: number) => (
           <SwiperSlide key={item.id} className="group relative">
             <div className="relative w-full md:h-[95vh] h-[80vh]">
               {item.backdrop_path ? (
                 <Image
-                  src={`https://image.tmdb.org/t/p/original${item.backdrop_path}`}
+                  src={`https://image.tmdb.org/t/p/w1280${item.backdrop_path}`}
                   alt=""
                   fill
-                  priority
+                  priority={index === 0}
+                  sizes="100vw"
                   className="object-cover object-center group-hover:scale-105 transition-all duration-300"
                 />
               ) : (
@@ -83,7 +84,7 @@ export default function Carousel({
                   alt=""
                   width={400}
                   height={200}
-                  className="max-h-[80px] md:max-h-[100px] left-0 object-left object-contain drop-shadow-lg"
+                  className="w-auto h-auto max-h-[80px] md:max-h-[100px] left-0 object-left object-contain drop-shadow-lg"
                 />
               ) : (
                 <h1 className="font-black text-xl md:text-4xl lg:text-5xl max-w-[50%] line-clamp-2">

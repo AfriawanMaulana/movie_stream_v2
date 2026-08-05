@@ -14,7 +14,7 @@ export default async function Page({
   const params = await searchParams;
   const page = Number(params.page) || 1;
 
-  const tv_series = await getMovies("/api/tmdb/tv/popular", page);
+  const tv_series = await getMovies("/api/tmdb/tv/popular?logo=true", page);
   return (
     <div className="flex flex-col">
       <title>TV Series - TERFLIX</title>

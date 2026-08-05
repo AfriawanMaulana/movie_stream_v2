@@ -3,6 +3,7 @@ import {
   Bookmark,
   ChevronDown,
   ChevronUp,
+  ClockFading,
   LogIn,
   LogOut,
   Search,
@@ -421,6 +422,24 @@ export default function Navbar() {
                           />
                           <p className="font-semibold opacity-60">My List</p>
                         </Link>
+                        <Link
+                          href="/profile/history"
+                          onClick={() => setOpenProfile(false)}
+                          className={`${
+                            pathName === "/profile/history"
+                              ? "bg-secondary/5"
+                              : ""
+                          } flex gap-2 items-center border border-secondary/20 hover:bg-secondary/5 p-2 rounded-md justify-center cursor-pointer`}
+                        >
+                          <ClockFading
+                            size={16}
+                            color="yellow"
+                            className="opacity-60"
+                          />
+                          <p className="font-semibold opacity-60">
+                            Watch History
+                          </p>
+                        </Link>
                         <div className="space-y-2">
                           <Link
                             href="/profile"
@@ -558,6 +577,20 @@ export default function Navbar() {
                   >
                     <Bookmark size={16} color="yellow" className="opacity-60" />
                     <p className="font-semibold opacity-60">My List</p>
+                  </Link>
+                  <Link
+                    href="/profile/history"
+                    onClick={() => setOpenProfile(false)}
+                    className={`${
+                      pathName === "/profile/history" ? "bg-secondary/5" : ""
+                    } flex gap-2 items-center border border-secondary/20 hover:bg-secondary/5 p-2 rounded-md justify-center cursor-pointer`}
+                  >
+                    <ClockFading
+                      size={16}
+                      color="yellow"
+                      className="opacity-60"
+                    />
+                    <p className="font-semibold opacity-60">Watch History</p>
                   </Link>
                   <div>
                     <Link

@@ -77,11 +77,11 @@ export default function Page() {
                 className="group w-full h-full relative overflow-hidden rounded-xl"
               >
                 <Image
-                  src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                  src={`https://image.tmdb.org/t/p/w342${item.poster_path}`}
                   alt={item.title}
                   width={200}
                   height={300}
-                  unoptimized
+                  sizes="(max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
                   className="w-full h-full object-cover transition-all duration-200 group-hover:brightness-50 group-hover:scale-110"
                 />
 
