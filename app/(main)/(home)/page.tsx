@@ -8,6 +8,7 @@ import MovieSkeleton from "@/app/components/MovieSkeleton";
 import CarouselSkeleton from "@/app/components/CarouselSkeleton";
 import { getWatchHistory } from "@/app/actions/watchHistory";
 import ContinueWatchingClient from "@/app/components/ContinueWatchingClient";
+import AdsBanner from "@/app/components/AdsBanner";
 
 
 export default async function Home() {
@@ -36,8 +37,23 @@ export default async function Home() {
         </Suspense>
       )}
       <section className="px-5 lg:px-14 pb-20 flex flex-col">
-        <div className="space-y-10">
+        <div className="space-y-6">
           <ContinueWatchingClient serverHistory={serverHistory} />
+
+          {/* Ads */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+           <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+            <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+          </div>
+
           <Suspense fallback={<MovieSkeleton count={6} isScroll />}>
             <MovieList
               data={nowPlaying}
@@ -47,6 +63,7 @@ export default async function Home() {
               isScroll
             />
           </Suspense>
+          
           <Suspense fallback={<MovieSkeleton count={6} isScroll />}>
             <MovieList
               data={popular}
@@ -56,6 +73,21 @@ export default async function Home() {
               isScroll
             />
           </Suspense>
+
+          {/* Ads */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+           <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+            <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+          </div>
+
           <Suspense fallback={<MovieSkeleton count={6} isScroll />}>
             <MovieList
               data={indonesian}
@@ -74,6 +106,21 @@ export default async function Home() {
               isScroll
             />
           </Suspense>
+
+           {/* Ads */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+            <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+            <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+          </div>
+
         </div>
       </section>
     </div>

@@ -4,6 +4,7 @@ import SearchFilter from "./SearchFilter";
 import { getMovies } from "@/lib/tmdb/getMovies";
 import MovieSkeleton from "@/app/components/MovieSkeleton";
 import { Suspense } from "react";
+import AdsBanner from "@/app/components/AdsBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,20 @@ export default async function Page({
         <h1 className="text-2xl px-4 my-4 border-l-2 border-red-500">
           Search for Movies or TV series.
         </h1>
+        {/* Ads */}
+          <div className="pb-2 grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+            <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+            />
+            <AdsBanner
+              adKey="11dc30a983c4986cbec90d0d54c60371"
+              width={728}
+              height={80}
+              className="hidden md:block"
+            />
+          </div>
         <SearchInput />
         <SearchFilter />
       </div>
@@ -49,7 +64,6 @@ export default async function Page({
         </div>
         <SearchInput />
         <SearchFilter />
-
         <Suspense fallback={<MovieSkeleton />}>
           <MovieList data={search} category={category} header="" isPagination />
         </Suspense>

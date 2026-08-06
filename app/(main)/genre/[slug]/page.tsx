@@ -4,6 +4,7 @@ import MovieList from "@/app/components/MovieList";
 import GenreFilter from "./GenreFilter";
 import { getMovies } from "@/lib/tmdb/getMovies";
 import { getGenreId } from "@/lib/tmdb/getGenreId";
+import AdsBanner from "@/app/components/AdsBanner";
 
 export default async function Page({
   params,
@@ -45,12 +46,40 @@ export default async function Page({
           </h1>
         </div>
         <GenreFilter />
+         {/* Ads */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+          />
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+            className="hidden md:block"
+          />
+        </div>
         <MovieList
           data={movies}
           category={category}
           header="Recently Added"
           isPagination
         />
+         {/* Ads */}
+        <div className="pt-2 grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+          />
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+            className="hidden md:block"
+          />
+        </div>
       </section>
     </>
   );

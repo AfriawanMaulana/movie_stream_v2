@@ -11,7 +11,6 @@ async function getAuthUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
   return user;
 }
 
@@ -29,6 +28,9 @@ export async function recordWatchHistory(payload: {
 }) {
   try {
     const user = await getAuthUser();
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
 
     await db
       .insert(watchHistory)
@@ -84,6 +86,9 @@ export async function getWatchHistory(
 > {
   try {
     const user = await getAuthUser();
+    if (!user) {
+      return { success: true, data: [] };
+    }
 
     const history = await db.query.watchHistory.findMany({
       where: eq(watchHistory.userId, user.id),
@@ -101,6 +106,9 @@ export async function getWatchHistory(
 export async function deleteWatchHistoryItem(id: string) {
   try {
     const user = await getAuthUser();
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
 
     await db
       .delete(watchHistory)
@@ -116,6 +124,10 @@ export async function deleteWatchHistoryItem(id: string) {
 export async function clearWatchHistory() {
   try {
     const user = await getAuthUser();
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
     await db.delete(watchHistory).where(eq(watchHistory.userId, user.id));
     return { success: true };
   } catch (err) {

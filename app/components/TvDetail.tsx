@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { saveLocalWatchHistory } from "@/lib/localWatchHistory";
+import AdsBanner from "./AdsBanner";
 
 interface DataType {
   id: number;
@@ -670,6 +671,19 @@ export default function TvDetail({
               </div>
             </div>
           )}
+          {/* Ads */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+          />
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+          />
+        </div>
         </div>
         {/* Seasons */}
         <div className="flex flex-col space-y-6 my-4">

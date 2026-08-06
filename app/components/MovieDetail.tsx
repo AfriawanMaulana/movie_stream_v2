@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AdsBanner from "./AdsBanner";
 
 interface DataType {
   id: number;
@@ -636,6 +637,19 @@ export default function MovieDetail({ movie }: Props) {
               </div>
             </div>
           )}
+        </div>
+        {/* Ads */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 place-items-center animate-pulse">
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+          />
+          <AdsBanner
+            adKey="11dc30a983c4986cbec90d0d54c60371"
+            width={728}
+            height={80}
+          />
         </div>
         {/* Cast */}
         <h1 className="text-2xl font-semibold mb-4 border-l-4 border-red-500 px-2">
