@@ -3,13 +3,19 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastContainer } from "react-toastify";
 import PWAUpdater from "./pwa-updater";
+import Script from "next/script";
 
 export const viewport: Viewport = {
   themeColor: "#000000",
 };
 
 export const metadata: Metadata = {
-  title: "TERFLIX - Nonton Film, Serial TV berbagai Subtitle",
+  metadataBase: new URL("https://terflix.web.id"),
+  applicationName: "Terflix",
+   title: {
+    default: "TERFLIX",
+    template: "%s | TERFLIX",
+  },
   manifest: "/app/manifest.ts",
   description:
     "Platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
@@ -50,9 +56,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Terflix",
+    alternateName: "TERFLIX",
+    url: "https://terflix.web.id",
+  };
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body className={`antialiased`}>
+        <Script
+          id="website-schema"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd),
+          }}
+        />
         <PWAUpdater />
         <div className="min-h-screen">{children}</div>
         <Analytics />

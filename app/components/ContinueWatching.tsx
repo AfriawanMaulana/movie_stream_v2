@@ -36,8 +36,8 @@ export default function ContinueWatching({
       <div className="flex overflow-x-auto gap-4 no-scrollbar pb-2">
         {data.map((item) => {
           const progressPercent =
-            item.duration && item.progress
-              ? Math.min(100, (item.progress / item.duration) * 100)
+            item.duration && item.duration > 0 && item.progress && item.progress > 0
+              ? Math.min(100, Math.max(0, (item.progress / item.duration) * 100))
               : 0;
 
           const query = new URLSearchParams({
@@ -98,12 +98,14 @@ export default function ContinueWatching({
                 </div>
 
                 {/* Progress bar, paling bawah */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                  <div
-                    className="h-full bg-red-600"
-                    style={{ width: `${progressPercent || 4}%` }}
-                  />
-                </div>
+                {progressPercent > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                    <div
+                      className="h-full bg-red-600 transition-all duration-300"
+                      style={{ width: `${Math.max(2, progressPercent)}%` }}
+                    />
+                  </div>
+                )}
               </div>
             </Link>
           );

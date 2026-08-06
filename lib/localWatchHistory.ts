@@ -38,10 +38,13 @@ export function saveLocalWatchHistory(
   const id = `${payload.category}-${payload.movieId}`;
   const existing = getLocalWatchHistory();
 
-  // Kalau item ini sudah ada, cari data lama untuk merge (misal progress lama dipertahankan
-  // kalau payload baru tidak menyertakan progress)
   const prevItem = existing.find((item) => item.id === id);
   const filtered = existing.filter((item) => item.id !== id);
+
+  const isSameEpisode =
+    prevItem &&
+    prevItem.seasonNumber === (payload.seasonNumber ?? null) &&
+    prevItem.episodeNumber === (payload.episodeNumber ?? null);
 
   const newItem: LocalHistoryItem = {
     id,
@@ -51,14 +54,23 @@ export function saveLocalWatchHistory(
     backdropPath: payload.backdropPath,
     category: payload.category,
     server: payload.server,
-    seasonNumber: payload.seasonNumber,
-    episodeNumber: payload.episodeNumber,
-    progress: payload.progress ?? prevItem?.progress ?? null,
-    duration: payload.duration ?? prevItem?.duration ?? null,
+    seasonNumber: payload.seasonNumber ?? null,
+    episodeNumber: payload.episodeNumber ?? null,
+    progress:
+      payload.progress !== undefined && payload.progress !== null
+        ? payload.progress
+        : isSameEpisode
+        ? prevItem?.progress ?? null
+        : 0,
+    duration:
+      payload.duration !== undefined && payload.duration !== null && payload.duration > 0
+        ? payload.duration
+        : isSameEpisode
+        ? prevItem?.duration ?? null
+        : null,
     watchedAt: new Date().toISOString(),
   };
 
-  // Item terbaru selalu ditaruh di depan, dibatasi maksimal MAX_ITEMS
   const updated = [newItem, ...filtered].slice(0, MAX_ITEMS);
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));

@@ -43,7 +43,7 @@ export async function recordWatchHistory(payload: {
         seasonNumber: payload.season_number ?? null,
         episodeNumber: payload.episode_number ?? null,
         progress: payload.progress ?? 0,
-        duration: payload.duration ?? null,
+        duration: payload.duration && payload.duration > 0 ? payload.duration : null,
         watchedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -57,13 +57,12 @@ export async function recordWatchHistory(payload: {
           backdropPath: payload.backdrop_path ?? sql`${watchHistory.backdropPath}`,
           seasonNumber: payload.season_number ?? null,
           episodeNumber: payload.episode_number ?? null,
-          // Hanya update progress/duration kalau memang dikirim, kalau tidak, pertahankan value lama
           progress:
             payload.progress !== undefined
               ? payload.progress
-              : sql`${watchHistory.progress}`,
+              : sql`CASE WHEN ${watchHistory.seasonNumber} IS DISTINCT FROM ${payload.season_number ?? null} OR ${watchHistory.episodeNumber} IS DISTINCT FROM ${payload.episode_number ?? null} THEN 0 ELSE ${watchHistory.progress} END`,
           duration:
-            payload.duration !== undefined
+            payload.duration !== undefined && payload.duration > 0
               ? payload.duration
               : sql`${watchHistory.duration}`,
           watchedAt: new Date(),

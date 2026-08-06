@@ -134,22 +134,32 @@ export default function MovieDetail({ movie }: Props) {
     progress?: number;
     duration?: number;
   }) => {
+    const finalDuration =
+      payload.duration && payload.duration > 0
+        ? payload.duration
+        : data?.runtime
+        ? data.runtime * 60
+        : undefined;
+
+    const finalPayload = {
+      ...payload,
+      duration: finalDuration,
+    };
+
     if (user) {
-      // User login -> simpan ke database
-      recordWatchHistory(payload);
+      recordWatchHistory(finalPayload);
     } else {
-      // Guest -> simpan ke localStorage
       saveLocalWatchHistory({
-        movieId: payload.movie_id,
-        title: payload.title,
-        posterPath: payload.poster_path,
-        backdropPath: payload.backdrop_path ?? null,
-        category: payload.category,
-        server: payload.server,
-        seasonNumber: payload.season_number ?? null,
-        episodeNumber: payload.episode_number ?? null,
-        progress: payload.progress ?? null,
-        duration: payload.duration ?? null,
+        movieId: finalPayload.movie_id,
+        title: finalPayload.title,
+        posterPath: finalPayload.poster_path,
+        backdropPath: finalPayload.backdrop_path ?? null,
+        category: finalPayload.category,
+        server: finalPayload.server,
+        seasonNumber: finalPayload.season_number ?? null,
+        episodeNumber: finalPayload.episode_number ?? null,
+        progress: finalPayload.progress ?? null,
+        duration: finalPayload.duration ?? null,
       });
     }
   };
@@ -206,10 +216,12 @@ export default function MovieDetail({ movie }: Props) {
 
   // Event progress watch history dari player (postMessage)
   useEffect(() => {
-    const saveProgress = (currentTime: number, duration: number, force = false) => {
+    const saveProgress = (currentTime: number, duration?: number, force = false) => {
       const now = Date.now();
       if (!force && now - lastSavedRef.current < PROGRESS_THROTTLE_MS) return;
       lastSavedRef.current = now;
+
+      const validDuration = duration && duration > 0 ? Math.floor(duration) : undefined;
 
       saveWatchHistory({ 
         movie_id: String(movie_id),
@@ -219,57 +231,69 @@ export default function MovieDetail({ movie }: Props) {
         category: "movie",
         server: switchServerRef.current,
         progress: Math.floor(currentTime),
-        duration: Math.floor(duration),
+        duration: validDuration,
       });
     };
 
     const handleMessage = (event: MessageEvent) => {
-      const payload =
-        typeof event.data === "object" && event.data !== null
-          ? event.data
-          : null;
+      let payload = event.data;
+      if (typeof payload === "string") {
+        try {
+          payload = JSON.parse(payload);
+        } catch {
+          // not JSON
+        }
+      }
 
-      const eventType =
-        typeof payload?.type === "string"
-          ? payload.type
-          : typeof event.data?.type === "string"
-          ? event.data.type
-          : "";
+      if (!payload || typeof payload !== "object") return;
+
+      const eventType = String(
+        payload.type || payload.event || payload.name || ""
+      ).toLowerCase();
+
+      const rawCurrentTime =
+        payload.currentTime ??
+        payload.time ??
+        payload.position ??
+        payload.seconds ??
+        payload.current_time;
+
+      const rawDuration =
+        payload.duration ??
+        payload.videoDuration ??
+        payload.totalTime ??
+        payload.length;
 
       const currentTime =
-        typeof payload?.currentTime === "number"
-          ? payload.currentTime
-          : typeof payload?.time === "number"
-          ? payload.time
-          : typeof payload?.position === "number"
-          ? payload.position
+        typeof rawCurrentTime === "number" && !isNaN(rawCurrentTime)
+          ? rawCurrentTime
+          : typeof rawCurrentTime === "string" && !isNaN(Number(rawCurrentTime))
+          ? Number(rawCurrentTime)
           : null;
 
       const duration =
-        typeof payload?.duration === "number"
-          ? payload.duration
-          : typeof payload?.videoDuration === "number"
-          ? payload.videoDuration
-          : null;
+        typeof rawDuration === "number" && !isNaN(rawDuration) && rawDuration > 0
+          ? rawDuration
+          : typeof rawDuration === "string" && !isNaN(Number(rawDuration)) && Number(rawDuration) > 0
+          ? Number(rawDuration)
+          : undefined;
 
-      const fromPlayer =
-        event.source === iframeRef.current?.contentWindow ||
-        (typeof event.origin === "string" &&
-          (event.origin.includes("vidsrc") ||
-            event.origin.includes("embed") ||
-            event.origin.includes("player")));
+      if (currentTime === null) return;
 
-      if (!fromPlayer || currentTime === null) return;
-
-      if (eventType === "pause") {
-        saveProgress(currentTime, duration ?? undefined, true);
-      } else if (
-        eventType === "PLAYER_TIME_UPDATE" ||
-        eventType === "timeupdate" ||
-        eventType === "progress" ||
-        eventType === "player-progress"
+      if (
+        eventType.includes("pause") ||
+        eventType.includes("ended") ||
+        eventType === "pause"
       ) {
-        saveProgress(currentTime, duration ?? undefined, false);
+        saveProgress(currentTime, duration, true);
+      } else if (
+        eventType.includes("time") ||
+        eventType.includes("progress") ||
+        eventType.includes("update") ||
+        eventType === "player_time_update" ||
+        eventType === ""
+      ) {
+        saveProgress(currentTime, duration, false);
       }
     };
 

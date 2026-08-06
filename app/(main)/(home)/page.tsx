@@ -1,4 +1,3 @@
-// app/page.tsx
 export const dynamic = "force-dynamic";
 
 import MovieList from "@/app/components/MovieList";
@@ -8,8 +7,8 @@ import { Suspense } from "react";
 import MovieSkeleton from "@/app/components/MovieSkeleton";
 import CarouselSkeleton from "@/app/components/CarouselSkeleton";
 import { getWatchHistory } from "@/app/actions/watchHistory";
-import ContinueWatching from "@/app/components/ContinueWatching";
 import ContinueWatchingClient from "@/app/components/ContinueWatchingClient";
+
 
 export default async function Home() {
   const page = 1;
@@ -39,7 +38,6 @@ export default async function Home() {
       <section className="px-5 lg:px-14 pb-20 flex flex-col">
         <div className="space-y-10">
           <ContinueWatchingClient serverHistory={serverHistory} />
-
           <Suspense fallback={<MovieSkeleton count={6} isScroll />}>
             <MovieList
               data={nowPlaying}

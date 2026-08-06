@@ -73,8 +73,8 @@ export default function HistoryList({
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {history.map((item) => {
           const progressPercent =
-            item.duration && item.progress
-              ? Math.min(100, (item.progress / item.duration) * 100)
+            item.duration && item.duration > 0 && item.progress && item.progress > 0
+              ? Math.min(100, Math.max(0, (item.progress / item.duration) * 100))
               : 0;
 
           // Query string: id movie, server terakhir dipakai, dan flag autoplay
@@ -116,8 +116,8 @@ export default function HistoryList({
                   {progressPercent > 0 && (
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
                       <div
-                        className="h-full bg-red-500"
-                        style={{ width: `${progressPercent}%` }}
+                        className="h-full bg-red-500 transition-all duration-300"
+                        style={{ width: `${Math.max(2, progressPercent)}%` }}
                       />
                     </div>
                   )}
