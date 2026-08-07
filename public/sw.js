@@ -1,3 +1,17 @@
+
+
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(fetch(event.request));
+});
+
 self.addEventListener("push", function (event) {
   if (event.data) {
     const data = event.data.json();
@@ -16,15 +30,6 @@ self.addEventListener("push", function (event) {
 });
 
 self.addEventListener("notificationclick", function (event) {
-  console.log("Notification click received.");
   event.notification.close();
-  event.waitUntil(clients.openWindow("<https://terflix.vercel.app>"));
-});
-
-self.addEventListener("install", (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener("activate", (event) => {
-  self.clients.claim();
+  event.waitUntil(clients.openWindow("https://terflix.web.id"));
 });
