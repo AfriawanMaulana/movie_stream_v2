@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 import MovieList from "@/app/components/MovieList";
 import { getMovies } from "@/lib/tmdb/getMovies";
@@ -10,11 +10,10 @@ import { getWatchHistory } from "@/app/actions/watchHistory";
 import ContinueWatchingClient from "@/app/components/ContinueWatchingClient";
 import AdsBanner from "@/app/components/AdsBanner";
 
-
 export default async function Home() {
   const page = 1;
 
-  const [nowPlaying, popular, indonesian, tvTrending] =
+  const [nowPlaying, popular, indonesian, tvTrending, historyResult] =
     await Promise.all([
       getMovies("/api/tmdb/movie/now_playing?logo=true", page),
       getMovies("/api/tmdb/trending/movie/week", page),
@@ -23,9 +22,9 @@ export default async function Home() {
         page
       ),
       getMovies("/api/tmdb/trending/tv/day", page),
+      getWatchHistory(10),
     ]);
 
-  const historyResult = await getWatchHistory(10);
   const serverHistory = historyResult.success ? historyResult.data ?? [] : [];
 
 

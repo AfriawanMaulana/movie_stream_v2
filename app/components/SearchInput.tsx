@@ -1,26 +1,65 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function SearchInput() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const query = searchParams.get("query");
-  const [searchValue, setSearchValue] = useState("");
+  const query = searchParams.get("query") ?? "";
+  const [searchValue, setSearchValue] = useState(query);
   const [processing, setProcessing] = useState(false);
+  const isInitialMount = useRef(true);
 
-  //* Search navigation
-  const handleSearch = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (!searchValue) return "";
-    router.replace(`/search?query=${encodeURIComponent(searchValue)}`);
-    setProcessing(true);
-  };
-
+  // Sync initial query from URL
   useEffect(() => {
-    if (query) setSearchValue(query);
+    setSearchValue(query);
     setProcessing(false);
   }, [query]);
+
+  // Debounced auto-search when typing (500ms rest delay)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const trimmed = searchValue.trim();
+      const currentQuery = searchParams.get("query") ?? "";
+
+      if (trimmed !== currentQuery) {
+        setProcessing(true);
+        const params = new URLSearchParams(searchParams.toString());
+        if (trimmed) {
+          params.set("query", trimmed);
+        } else {
+          params.delete("query");
+        }
+        params.set("page", "1"); // Reset pagination on new search
+        router.replace(`/search?${params.toString()}`);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue, router, searchParams]);
+
+  const handleSearch = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const trimmed = searchValue.trim();
+    const currentQuery = searchParams.get("query") ?? "";
+
+    if (trimmed === currentQuery) return;
+
+    setProcessing(true);
+    const params = new URLSearchParams(searchParams.toString());
+    if (trimmed) {
+      params.set("query", trimmed);
+    } else {
+      params.delete("query");
+    }
+    params.set("page", "1");
+    router.replace(`/search?${params.toString()}`);
+  };
 
   return (
     <div className="w-full">
@@ -30,19 +69,19 @@ export default function SearchInput() {
       >
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Search movies or TV series..."
           value={searchValue}
           onChange={(e) => setSearchValue(e.currentTarget.value)}
-          className="py-3 pl-3 pr-8 bg-black border border-white/20 rounded-md w-full focus:outline-0"
+          className="py-3 pl-3 pr-10 bg-black border border-white/20 rounded-md w-full focus:outline-0 focus:border-red-500/60 transition-colors"
         />
         <button
           type="submit"
-          className="absolute cursor-pointer right-0 rounded-md p-2"
+          className="absolute cursor-pointer right-0 rounded-md p-2 hover:text-red-500 transition-colors"
         >
           {processing ? (
             <svg
               aria-hidden="true"
-              className="inline size-5 text-gray-200 animate-spin dark:text-gray-600 fill-gray-600 dark:fill-gray-300"
+              className="inline size-5 text-gray-200 animate-spin dark:text-gray-600 fill-red-600"
               viewBox="0 0 100 101"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"

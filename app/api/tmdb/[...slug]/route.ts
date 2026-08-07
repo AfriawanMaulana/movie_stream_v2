@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { Logoprops, MovieItem } from "@/app/types";
+import { fetchDirectTMDB } from "@/lib/tmdb/client";
 
 export async function GET(
   req: NextRequest,
@@ -10,81 +10,21 @@ export async function GET(
     const { slug } = await context.params;
     const fullPath = slug.join("/");
     const searchParams = new URL(req.url).searchParams;
-    const includeLogo = searchParams.get("logo") === "true";
-    
-    // Remove custom 'logo' parameter before forwarding request to TMDB API
-    searchParams.delete("logo");
-    const query = searchParams.toString();
+    const paramObj: Record<string, string> = {};
 
-    const baseUrl = `${process.env.TMDB_API}/${fullPath}?${query}`;
-
-    const res = await fetch(baseUrl, {
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${process.env.TMDB_TOKEN}`,
-      },
-      next: { revalidate: 3600 }, // cache 1 jam
+    searchParams.forEach((value, key) => {
+      paramObj[key] = value;
     });
 
-    const data = await res.json();
+    const data = await fetchDirectTMDB(fullPath, paramObj, 3600);
 
-    if (data.results) {
-      if (includeLogo) {
-        const types = fullPath.startsWith("movie") ? "movie" : "tv";
-        const results = await Promise.all(
-          data.results.slice(0, 20).map(async (movie: MovieItem) => {
-            try {
-              const imgRes = await fetch(
-                `${process.env.TMDB_API}/${types}/${movie.id}/images`,
-                {
-                  headers: {
-                    accept: "application/json",
-                    Authorization: `Bearer ${process.env.TMDB_TOKEN}`,
-                  },
-                  next: { revalidate: 3600 },
-                }
-              );
-
-              const imgData = await imgRes.json();
-
-              const logo =
-                imgData.logos?.find((l: Logoprops) => l.iso_639_1 === "en") ||
-                imgData.logos?.[0];
-
-              return {
-                ...movie,
-                logo: logo
-                  ? `https://image.tmdb.org/t/p/original${logo.file_path}`
-                  : null,
-              };
-            } catch {
-              return {
-                ...movie,
-                logo: null,
-              };
-            }
-          })
-        );
-
-        return NextResponse.json({
-          ...data,
-          results,
-        });
-      } else {
-        const results = data.results.map((movie: MovieItem) => ({
-          ...movie,
-          logo: null,
-        }));
-        return NextResponse.json({
-          ...data,
-          results,
-        });
-      }
+    if (!data) {
+      return NextResponse.json({ error: "Failed to fetch data" }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (err) {
-    console.log("Unexpected error", err);
-    return NextResponse.error();
+    console.error("Unexpected error in TMDB route:", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

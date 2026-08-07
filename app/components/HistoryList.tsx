@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Trash2, Play } from "lucide-react";
+import { Trash2, Play, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   deleteWatchHistoryItem,
@@ -29,6 +29,8 @@ export default function HistoryList({
   initialHistory: HistoryItem[];
 }) {
   const [history, setHistory] = useState(initialHistory);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   const handleDelete = async (id: string) => {
     const res = await deleteWatchHistoryItem(id);
@@ -40,14 +42,21 @@ export default function HistoryList({
     }
   };
 
-  const handleClearAll = async () => {
-    if (!confirm("Hapus semua riwayat tontonan?")) return;
-    const res = await clearWatchHistory();
-    if (res.success) {
-      setHistory([]);
-      toast.success("Semua riwayat dihapus");
-    } else {
-      toast.error(res.error);
+  const confirmClearAll = async () => {
+    setIsClearing(true);
+    try {
+      const res = await clearWatchHistory();
+      if (res.success) {
+        setHistory([]);
+        toast.success("Semua riwayat dihapus");
+        setShowConfirmModal(false);
+      } else {
+        toast.error(res.error);
+      }
+    } catch {
+      toast.error("Gagal menghapus riwayat");
+    } finally {
+      setIsClearing(false);
     }
   };
 
@@ -63,10 +72,11 @@ export default function HistoryList({
     <div className="space-y-4">
       <div className="flex justify-end">
         <button
-          onClick={handleClearAll}
-          className="text-sm text-red-500 hover:text-red-400"
+          onClick={() => setShowConfirmModal(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-sm font-semibold text-red-500 hover:bg-red-500 hover:text-white transition-all cursor-pointer"
         >
-          Hapus semua
+          <Trash2 size={15} />
+          <span>Hapus semua</span>
         </button>
       </div>
 
@@ -149,6 +159,65 @@ export default function HistoryList({
           );
         })}
       </div>
+
+      {/* Delete Confirmation Popup Modal */}
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isClearing) {
+              setShowConfirmModal(false);
+            }
+          }}
+        >
+          <div className="w-full max-w-md bg-[#181818] border border-white/15 rounded-2xl p-6 shadow-2xl space-y-5 animate-scaleUp">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">
+                  Hapus Semua Riwayat?
+                </h3>
+                <p className="text-xs text-white/50 mt-0.5">
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-white/70">
+              Apakah kamu yakin ingin menghapus seluruh riwayat tontonanmu dari akun ini?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isClearing}
+                className="px-4 py-2 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/5 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmClearAll}
+                disabled={isClearing}
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg shadow-red-600/30 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {isClearing ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>Ya, Hapus Semua</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

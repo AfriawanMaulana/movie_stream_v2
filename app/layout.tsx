@@ -3,6 +3,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastContainer } from "react-toastify";
 import PWAUpdater from "./pwa-updater";
+import TrafficTracker from "./components/TrafficTracker";
 import Script from "next/script";
 
 export const viewport: Viewport = {
@@ -75,6 +76,7 @@ export default function RootLayout({
           }}
         />
         <PWAUpdater />
+        <TrafficTracker />
         <div className="min-h-screen">{children}</div>
         <Analytics />
         <ToastContainer position="bottom-right" autoClose={3000} theme="dark" />

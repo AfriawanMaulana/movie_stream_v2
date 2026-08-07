@@ -25,10 +25,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    useCache: true,
-    // nodeMiddleware: true,
-  },
 };
 
 export default nextConfig;

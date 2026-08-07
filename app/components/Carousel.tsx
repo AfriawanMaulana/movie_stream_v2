@@ -37,7 +37,7 @@ export default function Carousel({
   };
 
   return (
-    <div className="w-full max-w-full h-auto mx-auto">
+    <div className="w-full max-w-full h-auto mx-auto z-0">
       <Swiper
         spaceBetween={20}
         slidesPerView={1}

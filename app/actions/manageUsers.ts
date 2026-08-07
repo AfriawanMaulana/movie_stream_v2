@@ -4,10 +4,11 @@ import { users } from "@/db/schema";
 import { eq, ilike, or, count } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { cache } from "react";
 
 const PAGE_SIZE = 10;
 
-async function requireAdmin() {
+export const requireAdmin = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user: authUser },
@@ -22,7 +23,7 @@ async function requireAdmin() {
   if (profile?.role !== "admin") throw new Error("Forbidden");
 
   return authUser;
-}
+});
 
 export async function getUsersPaginated({
   page = 1,

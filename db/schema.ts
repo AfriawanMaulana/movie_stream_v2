@@ -8,6 +8,7 @@ import {
   boolean,
   integer,
   unique,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["user", "premium", "admin"]);
@@ -76,3 +77,21 @@ export const watchHistory = pgTable(
     uniqueWatchL: unique().on(table.userId, table.movieId, table.category),
   })
 );
+
+export const pageViews = pgTable(
+  "page_views",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    path: text("path").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    visitorId: text("visitor_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    createdAtIdx: index("pv_created_at_idx").on(table.createdAt),
+    visitorIdIdx: index("pv_visitor_id_idx").on(table.visitorId),
+  })
+);
+
