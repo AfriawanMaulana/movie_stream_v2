@@ -17,7 +17,6 @@ export const metadata: Metadata = {
     default: "TERFLIX",
     template: "%s | TERFLIX",
   },
-  manifest: "/app/manifest.ts",
   description:
     "Platform streaming film, series, anime, dengan berbagai subtitle tersedia dan menyediakan kualitas terbaik yang ada dipasaran Indonesia secara gratis.",
   icons: {
