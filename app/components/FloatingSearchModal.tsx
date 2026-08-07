@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Search, X, Film, Tv, Star, Loader2, ArrowRight } from "lucide-react";
 import { MovieItem } from "@/app/types";
-import Link from "next/link";
 
 interface FloatingSearchModalProps {
   isOpen: boolean;

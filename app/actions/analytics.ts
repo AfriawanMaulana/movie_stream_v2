@@ -1,11 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { pageViews, users } from "@/db/schema";
-import { gte, count, countDistinct, eq, sql } from "drizzle-orm";
-import { createClient } from "@/lib/supabase/server";
-import { cache } from "react";
-
+import { pageViews } from "@/db/schema";
+import { gte, count, countDistinct, sql } from "drizzle-orm";
 import { requireAdmin } from "@/app/actions/manageUsers";
 
 export type PeriodType = "day" | "week" | "month" | "year" | "all";
